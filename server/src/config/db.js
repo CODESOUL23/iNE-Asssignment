@@ -4,13 +4,16 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+// Load .env from server folder as well as current working directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config();
+
+const rawSupabaseUrl = process.env.SUPABASE_URL || '';
+const SUPABASE_URL = rawSupabaseUrl.trim().replace(/\/rest\/v1\/?$/, '');
+const SUPABASE_ANON_KEY = (process.env.SUPABASE_ANON_KEY || '').trim();
 
 let supabase = null;
 const isSupabaseConfigured = Boolean(

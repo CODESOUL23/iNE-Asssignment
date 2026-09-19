@@ -11,56 +11,72 @@ export function StatsBar({ stats }) {
   } = stats || {};
 
   return (
-    <div className="stats-grid">
-      <div className="stat-card">
-        <div className="stat-label">
-          <span>Tracked Products</span>
-          <Package size={16} className="text-muted" />
+    <div className="kpi-grid">
+      {/* Tracked SKUs — yellow sticky */}
+      <div className="kpi-card">
+        <div className="kpi-header">
+          <span>Tracked</span>
+          <Package size={15} />
         </div>
-        <div className="stat-value mono">{totalTracked}</div>
+        <div className="kpi-body">
+          <div className="kpi-number">{totalTracked}</div>
+          <span className="kpi-badge">Live</span>
+        </div>
       </div>
 
-      <div className="stat-card">
-        <div className="stat-label">
+      {/* In Stock — blue sticky */}
+      <div className="kpi-card">
+        <div className="kpi-header">
           <span>In Stock</span>
-          <CheckCircle2 size={16} style={{ color: 'var(--status-success)' }} />
+          <CheckCircle2 size={15} />
         </div>
-        <div className="stat-value mono" style={{ color: 'var(--status-success)' }}>
-          {inStock}
-        </div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-label">
-          <span>Out of Stock</span>
-          <AlertTriangle size={16} style={{ color: outOfStock > 0 ? 'var(--status-danger)' : 'var(--text-muted)' }} />
-        </div>
-        <div className="stat-value mono" style={{ color: outOfStock > 0 ? 'var(--status-danger)' : 'var(--text-muted)' }}>
-          {outOfStock}
+        <div className="kpi-body">
+          <div className="kpi-number">{inStock}</div>
+          <span className="kpi-badge">
+            {totalTracked > 0 ? `${Math.round((inStock / totalTracked) * 100)}%` : '—'}
+          </span>
         </div>
       </div>
 
-      <div className="stat-card">
-        <div className="stat-label">
-          <span>Scraper Reliability</span>
-          <Cpu size={16} style={{ color: 'var(--accent-primary)' }} />
+      {/* Out of Stock — pink sticky */}
+      <div className="kpi-card">
+        <div className="kpi-header">
+          <span>Stockouts</span>
+          <AlertTriangle size={15} />
         </div>
-        <div className="stat-value mono" style={{ color: 'var(--accent-primary)' }}>
-          {recentReliabilityRate}%
+        <div className="kpi-body">
+          <div className="kpi-number">{outOfStock}</div>
+          <span className="kpi-badge">
+            {outOfStock > 0 ? 'Alert' : 'Clear'}
+          </span>
         </div>
       </div>
 
-      <div className="stat-card">
-        <div className="stat-label">
-          <span>Database Engine</span>
-          <Database size={16} className="text-muted" />
+      {/* Solver Health — green sticky */}
+      <div className="kpi-card">
+        <div className="kpi-header">
+          <span>Solver</span>
+          <Cpu size={15} />
         </div>
-        <div className="stat-value" style={{ fontSize: '1.1rem', paddingTop: '10px' }}>
-          {isSupabaseActive ? (
-            <span style={{ color: 'var(--status-success)' }}>Supabase (PostgreSQL)</span>
-          ) : (
-            <span style={{ color: 'var(--status-warning)' }}>Local Storage Active</span>
-          )}
+        <div className="kpi-body">
+          <div className="kpi-number">{recentReliabilityRate}%</div>
+          <span className="kpi-badge">~150ms</span>
+        </div>
+      </div>
+
+      {/* Database — orange sticky */}
+      <div className="kpi-card">
+        <div className="kpi-header">
+          <span>Storage</span>
+          <Database size={15} />
+        </div>
+        <div className="kpi-body">
+          <div className="kpi-number" style={{ fontSize: '1.4rem' }}>
+            {isSupabaseActive ? 'PG' : 'Local'}
+          </div>
+          <span className="kpi-badge">
+            {isSupabaseActive ? 'Supabase' : 'JSON'}
+          </span>
         </div>
       </div>
     </div>

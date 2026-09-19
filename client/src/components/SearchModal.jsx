@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, Check, Loader2, Plus } from 'lucide-react';
+import { Search, X, Check, Loader2, Plus, ArrowRight } from 'lucide-react';
 import { api } from '../services/api';
 
 export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds = [] }) {
@@ -58,40 +58,43 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+      <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-dialog-header">
           <div>
-            <h2>Search INE Storefront</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              Search by full or partial product name, brand, SKU, or category
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Search Storefront
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '2px' }}>
+              Find products by name, SKU, brand, or category
             </p>
           </div>
-          <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>
-            <X size={18} />
+          <button type="button" className="btn btn-ghost btn-icon btn-sm" onClick={onClose}>
+            <X size={16} />
           </button>
         </div>
 
-        <div className="modal-body">
-          <div className="search-input-wrapper">
-            <Search size={18} className="search-icon" />
+        <div className="modal-dialog-body">
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
-              className="search-input"
-              placeholder="e.g. Solar Charger, Vantablack, VAN-10366..."
+              className="search-input-field"
+              placeholder="Search products (e.g. Solar Charger, Vantablack, VAN-10366)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
+              style={{ maxWidth: '100%', paddingLeft: '36px', height: '40px', fontSize: '0.86rem' }}
             />
             {loading && (
               <Loader2 
-                size={18} 
+                size={16} 
                 className="spin" 
-                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} 
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-ink)' }} 
               />
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '420px', overflowY: 'auto' }}>
             {results.map((product) => {
               const isAlreadyTracked = trackedProductIds.includes(product.id);
               const isProcessing = trackingId === product.id;
@@ -105,30 +108,27 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
                     justifyContent: 'space-between',
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
-                    background: 'var(--bg-app)',
-                    border: '1px solid var(--border-subtle)',
-                    gap: '16px'
+                    background: '#faf6ee',
+                    border: '1px solid var(--border-light)',
+                    transition: 'border-color var(--transition-fast)'
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                      <span className="card-category" style={{ fontSize: '0.68rem' }}>{product.category}</span>
-                      <span style={{ color: 'var(--border-strong)' }}>•</span>
-                      <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        SKU: {product.sku}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                      <span className="card-sku-tag mono">{product.sku}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{product.category}</span>
                     </div>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                       {product.name}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
                       {product.brand}
                     </div>
                   </div>
 
                   <div>
                     {isAlreadyTracked ? (
-                      <span className="badge badge-success" style={{ padding: '6px 12px' }}>
+                      <span className="badge-tag badge-in-stock" style={{ padding: '5px 10px' }}>
                         <Check size={12} style={{ marginRight: '4px' }} />
                         Tracked
                       </span>
@@ -140,11 +140,11 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
                         disabled={isProcessing}
                       >
                         {isProcessing ? (
-                          <Loader2 size={14} className="spin" />
+                          <Loader2 size={13} className="spin" />
                         ) : (
-                          <Plus size={14} />
+                          <Plus size={13} />
                         )}
-                        <span>{isProcessing ? 'Adding...' : 'Track'}</span>
+                        <span>{isProcessing ? 'Adding...' : 'Track SKU'}</span>
                       </button>
                     )}
                   </div>
@@ -153,8 +153,8 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
             })}
 
             {!loading && results.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                No products found matching "{query}". Try another term.
+              <div style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+                {query ? `No items found matching "${query}".` : 'Type to search products from the storefront...'}
               </div>
             )}
           </div>

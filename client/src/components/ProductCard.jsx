@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RefreshCw, Trash2, ExternalLink, Clock, BarChart2 } from 'lucide-react';
+import { RefreshCw, Trash2, ExternalLink, Clock, BarChart3 } from 'lucide-react';
 
 export function ProductCard({ product, onSelect, onScrapeNow, onDelete, onUpdateFreq }) {
   const [isScraping, setIsScraping] = useState(false);
@@ -32,67 +32,74 @@ export function ProductCard({ product, onSelect, onScrapeNow, onDelete, onUpdate
     : 'Never';
 
   return (
-    <div className="product-card" onClick={() => onSelect(product)}>
+    <div className="product-b2b-card" onClick={() => onSelect(product)}>
       <div>
-        <div className="card-top">
-          <span className="card-category">{product.category}</span>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <a 
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="card-sku-tag mono">{product.sku}</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{product.category}</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '3px' }}>
+            <a
               href={`https://demo.inelabteamdev.com/product/${product.product_id}`}
-              target="_blank" 
+              target="_blank"
               rel="noreferrer"
               className="btn btn-ghost btn-icon btn-sm"
               onClick={(e) => e.stopPropagation()}
-              title="Open in INE Store"
+              title="View on storefront"
+              style={{ width: '26px', height: '26px' }}
             >
-              <ExternalLink size={14} />
+              <ExternalLink size={12} />
             </a>
-            <button 
+            <button
               type="button"
               className="btn btn-ghost btn-icon btn-sm"
               onClick={(e) => {
                 e.stopPropagation();
-                if (confirm(`Remove "${product.name}" from tracker?`)) {
-                  onDelete(product.product_id);
-                }
+                if (confirm(`Remove "${product.name}"?`)) onDelete(product.product_id);
               }}
               title="Stop tracking"
-              style={{ color: 'var(--text-muted)' }}
+              style={{ width: '26px', height: '26px', color: 'var(--text-muted)' }}
             >
-              <Trash2 size={14} />
+              <Trash2 size={12} />
             </button>
           </div>
         </div>
 
-        <h3 className="card-name">{product.name}</h3>
-        <p className="card-brand">{product.brand} · SKU {product.sku}</p>
+        <h3 className="card-title-text">{product.name}</h3>
+        <p className="card-brand-text">{product.brand}</p>
 
-        <div className="price-stock-box">
-          <div className="price-main">
+        {/* Price & Stock */}
+        <div className="price-metric-box">
+          <div>
+            <div className="price-label">Current Price</div>
             {hasPrice ? (
-              <>
-                <div className="price-current mono">
-                  ₹{Number(product.current_price).toLocaleString()}
-                </div>
-                {product.mrp && (
-                  <div className="price-mrp mono">
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
+                <span className="price-val mono">₹{Number(product.current_price).toLocaleString()}</span>
+                {product.mrp && product.mrp > product.current_price && (
+                  <span className="mono" style={{ fontSize: '0.76rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>
                     ₹{Number(product.mrp).toLocaleString()}
-                    {discount && <span style={{ color: 'var(--status-success)', marginLeft: '6px' }}>{discount}% OFF</span>}
-                  </div>
+                  </span>
                 )}
-              </>
+                {discount && (
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--status-success)' }}>
+                    -{discount}%
+                  </span>
+                )}
+              </div>
             ) : (
-              <div className="price-current" style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>
-                Price pending...
+              <div className="mono" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Pending...
               </div>
             )}
           </div>
 
           <div>
             {isOutOfStock ? (
-              <span className="stock-badge out-of-stock">Out of Stock</span>
+              <span className="badge-tag badge-out-stock">Out of Stock</span>
             ) : (
-              <span className="stock-badge in-stock">
+              <span className="badge-tag badge-in-stock">
                 {product.current_stock ? `${product.current_stock} in stock` : 'In Stock'}
               </span>
             )}
@@ -101,58 +108,65 @@ export function ProductCard({ product, onSelect, onScrapeNow, onDelete, onUpdate
       </div>
 
       <div>
-        <div className="card-meta-row">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={13} />
-            <span>Last scraped: {formattedTime}</span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: '0.73rem',
+          color: 'var(--text-muted)',
+          paddingTop: '8px',
+          borderTop: '1px dashed var(--border-light)',
+          marginBottom: '10px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Clock size={11} />
+            <span>{formattedTime}</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span>Every</span>
             <select
               value={product.frequency_hours || 2}
               onChange={handleFreqChange}
               onClick={(e) => e.stopPropagation()}
               className="mono"
               style={{
-                background: 'var(--bg-surface-elevated)',
+                background: 'var(--bg-white)',
                 color: 'var(--text-secondary)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '4px',
-                padding: '2px 4px',
-                fontSize: '0.75rem'
+                border: '1px solid var(--border-light)',
+                borderRadius: '2px',
+                padding: '1px 4px',
+                fontSize: '0.7rem',
+                cursor: 'pointer'
               }}
             >
-              <option value="1">Every 1h</option>
-              <option value="2">Every 2h</option>
-              <option value="6">Every 6h</option>
-              <option value="12">Every 12h</option>
+              <option value="1">1h</option>
+              <option value="2">2h</option>
+              <option value="6">6h</option>
+              <option value="12">12h</option>
             </select>
           </div>
         </div>
 
-        <div className="card-actions">
-          <button 
-            type="button" 
-            className="btn btn-secondary btn-sm" 
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
             style={{ flex: 1 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(product);
-            }}
+            onClick={(e) => { e.stopPropagation(); onSelect(product); }}
           >
-            <BarChart2 size={14} />
-            <span>History & Logs</span>
+            <BarChart3 size={12} />
+            <span>Details</span>
           </button>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn btn-primary btn-sm"
             onClick={handleScrape}
             disabled={isScraping}
-            title="Trigger scrape now"
           >
-            <RefreshCw size={14} className={isScraping ? 'spin' : ''} />
-            <span>{isScraping ? 'Scraping...' : 'Scrape'}</span>
+            <RefreshCw size={12} className={isScraping ? 'spin' : ''} />
+            <span>{isScraping ? 'Fetching...' : 'Fetch'}</span>
           </button>
         </div>
       </div>

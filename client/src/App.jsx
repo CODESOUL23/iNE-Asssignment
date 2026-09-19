@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
 import { StatsBar } from './components/StatsBar';
 import { ProductCard } from './components/ProductCard';
 import { SearchModal } from './components/SearchModal';
@@ -7,7 +8,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { AlertsModal } from './components/AlertsModal';
 import { HealthModal } from './components/HealthModal';
 import { api } from './services/api';
-import { Plus, RefreshCw, Search, PackageOpen } from 'lucide-react';
+import { Plus, RefreshCw, LayoutGrid, Table, Trash2, BarChart3 } from 'lucide-react';
 
 export default function App() {
   const [trackedProducts, setTrackedProducts] = useState([]);
@@ -15,6 +16,8 @@ export default function App() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterQuery, setFilterQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [viewMode, setViewMode] = useState('grid');
 
   // Modals state
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -24,8 +27,20 @@ export default function App() {
 
   useEffect(() => {
     loadDashboardData();
-    const interval = setInterval(loadDashboardData, 30000); // 30s poll
+    const interval = setInterval(loadDashboardData, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Global ⌘K shortcut
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const loadDashboardData = async () => {
@@ -63,7 +78,7 @@ export default function App() {
     await loadDashboardData();
   };
 
-  const handleTrackSuccess = async (productId) => {
+  const handleTrackSuccess = async () => {
     setIsSearchOpen(false);
     await loadDashboardData();
   };
@@ -75,122 +90,235 @@ export default function App() {
 
   const unreadAlertsCount = alerts.filter(a => !a.is_read).length;
 
-  const filteredProducts = trackedProducts.filter(p => 
-    p.name.toLowerCase().includes(filterQuery.toLowerCase()) ||
-    p.brand.toLowerCase().includes(filterQuery.toLowerCase()) ||
-    p.sku.toLowerCase().includes(filterQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(filterQuery.toLowerCase())
-  );
+  // Extract unique categories with counts
+  const categoryCounts = {};
+  trackedProducts.forEach(p => {
+    if (p.category) {
+      categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
+    }
+  });
+  const categories = Object.keys(categoryCounts).sort();
+
+  const filteredProducts = trackedProducts.filter(p => {
+    const matchesQuery =
+      p.name.toLowerCase().includes(filterQuery.toLowerCase()) ||
+      p.brand.toLowerCase().includes(filterQuery.toLowerCase()) ||
+      p.sku.toLowerCase().includes(filterQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(filterQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'ALL' || p.category === selectedCategory;
+    return matchesQuery && matchesCategory;
+  });
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar
+    <div className="app-shell">
+      {/* Left Sidebar */}
+      <Sidebar
+        categories={categories}
+        categoryCounts={categoryCounts}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+        filterQuery={filterQuery}
+        onFilterChange={setFilterQuery}
+        totalTracked={trackedProducts.length}
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenAlerts={() => setIsAlertsOpen(true)}
         onOpenHealth={() => setIsHealthOpen(true)}
         unreadAlertsCount={unreadAlertsCount}
       />
 
-      <main className="container" style={{ flex: 1, paddingBottom: '60px' }}>
-        <StatsBar stats={stats} />
+      {/* Main Content Area */}
+      <div className="main-content">
+        {/* Top Bar */}
+        <Navbar
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenAlerts={() => setIsAlertsOpen(true)}
+          onOpenHealth={() => setIsHealthOpen(true)}
+          unreadAlertsCount={unreadAlertsCount}
+          onRefresh={loadDashboardData}
+        />
 
-        <div className="dashboard-header">
-          <div className="dashboard-title-group">
-            <h2>Tracked Store Shelves</h2>
-            <p className="dashboard-subtitle">
-              Automated scheduled tracking against INE Mock Storefront with honest attempt logging
-            </p>
-          </div>
+        <div className="page-content">
+          {/* Sticky Note KPI Grid */}
+          <StatsBar stats={stats} />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input
-                type="text"
-                placeholder="Filter tracked items..."
-                value={filterQuery}
-                onChange={(e) => setFilterQuery(e.target.value)}
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '8px 12px 8px 36px',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.85rem'
-                }}
-              />
+          {/* Toolbar */}
+          <div className="toolbar-section">
+            <div className="toolbar-left">
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {selectedCategory === 'ALL' ? 'All tracked products' : selectedCategory}
+              </span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                ({filteredProducts.length} item{filteredProducts.length !== 1 ? 's' : ''})
+              </span>
             </div>
 
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-sm"
-              onClick={loadDashboardData}
-              title="Refresh dashboard"
-            >
-              <RefreshCw size={14} />
-              <span>Refresh</span>
-            </button>
-          </div>
-        </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="view-mode-toggle">
+                <button
+                  type="button"
+                  className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                  onClick={() => setViewMode('grid')}
+                  title="Grid View"
+                >
+                  <LayoutGrid size={14} />
+                </button>
+                <button
+                  type="button"
+                  className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
+                  onClick={() => setViewMode('table')}
+                  title="Table View"
+                >
+                  <Table size={14} />
+                </button>
+              </div>
 
-        {/* Product Cards Grid */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
-            <RefreshCw size={24} className="spin" style={{ margin: '0 auto 12px', display: 'block', color: 'var(--accent-primary)' }} />
-            Loading tracked products...
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={loadDashboardData}
+                title="Refresh"
+              >
+                <RefreshCw size={13} />
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <Plus size={13} />
+                <span>Track New</span>
+              </button>
+            </div>
           </div>
-        ) : filteredProducts.length > 0 ? (
-          <div className="products-grid">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.product_id}
-                product={product}
-                onSelect={(prod) => setSelectedProduct(prod)}
-                onScrapeNow={handleScrapeNow}
-                onDelete={handleDelete}
-                onUpdateFreq={handleUpdateFreq}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <PackageOpen className="empty-icon" />
-            <h3 className="empty-title">
-              {filterQuery ? 'No matching tracked products' : 'No products being tracked yet'}
-            </h3>
-            <p className="empty-desc">
-              {filterQuery 
-                ? `No products found matching "${filterQuery}". Clear the search or track a new product.`
-                : 'Search the INE mock store to pick products and start recording price and stock trends on schedule.'}
-            </p>
-            {!filterQuery && (
-              <button 
-                type="button" 
+
+          {/* Content */}
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+              <RefreshCw size={20} className="spin" style={{ margin: '0 auto 10px', display: 'block', color: 'var(--accent-ink)' }} />
+              <div style={{ fontSize: '0.86rem' }}>Loading tracked catalog...</div>
+            </div>
+          ) : filteredProducts.length > 0 ? (
+            viewMode === 'grid' ? (
+              <div className="products-grid">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.product_id}
+                    product={product}
+                    onSelect={(prod) => setSelectedProduct(prod)}
+                    onScrapeNow={handleScrapeNow}
+                    onDelete={handleDelete}
+                    onUpdateFreq={handleUpdateFreq}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="b2b-table-container">
+                <table className="b2b-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Frequency</th>
+                      <th>Last Scraped</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product) => {
+                      const hasPrice = product.current_price !== null && product.current_price !== undefined;
+                      const isOutOfStock = product.current_stock === 0;
+                      return (
+                        <tr key={product.product_id} onClick={() => setSelectedProduct(product)}>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span className="card-sku-tag mono">{product.sku}</span>
+                              <div>
+                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.name}</div>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{product.brand}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ fontSize: '0.78rem' }}>{product.category}</td>
+                          <td>
+                            {hasPrice ? (
+                              <span className="mono" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{Number(product.current_price).toLocaleString()}</span>
+                            ) : (
+                              <span style={{ color: 'var(--text-muted)' }}>Pending</span>
+                            )}
+                          </td>
+                          <td>
+                            {isOutOfStock ? (
+                              <span className="badge-tag badge-out-stock">Out of stock</span>
+                            ) : (
+                              <span className="badge-tag badge-in-stock">{product.current_stock || '—'} in stock</span>
+                            )}
+                          </td>
+                          <td><span className="mono" style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Every {product.frequency_hours || 2}h</span></td>
+                          <td><span className="mono" style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>{product.last_scraped_at ? new Date(product.last_scraped_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}</span></td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
+                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedProduct(product)}>
+                                <BarChart3 size={12} />
+                              </button>
+                              <button type="button" className="btn btn-primary btn-sm" onClick={() => handleScrapeNow(product.product_id)}>
+                                <RefreshCw size={12} />
+                              </button>
+                              <button type="button" className="btn btn-ghost btn-icon btn-sm" onClick={() => { if (confirm(`Remove "${product.name}"?`)) handleDelete(product.product_id); }}>
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )
+          ) : (
+            <div style={{
+              background: 'var(--bg-white)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '50px 24px',
+              textAlign: 'center',
+              maxWidth: '460px',
+              margin: '30px auto'
+            }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📋</div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                {filterQuery ? 'No matching products' : 'Nothing tracked yet'}
+              </h3>
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.5 }}>
+                {filterQuery
+                  ? `No products match "${filterQuery}".`
+                  : 'Search the INE storefront and pin products here to track prices and stock levels.'}
+              </p>
+              <button
+                type="button"
                 className="btn btn-primary"
                 onClick={() => setIsSearchOpen(true)}
-                style={{ marginTop: '8px' }}
               >
-                <Plus size={16} />
-                <span>Search & Track Product</span>
+                <Plus size={14} />
+                <span>Search & Track</span>
               </button>
-            )}
-          </div>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border-subtle)',
-        padding: '24px 0',
-        textAlign: 'center',
-        fontSize: '0.82rem',
-        color: 'var(--text-muted)',
-        background: 'var(--bg-glass)'
-      }}>
-        <div className="container">
-          INE Software Engineer Intern Assignment · Built with React & Node.js · Targeted for Vercel & Render
+            </div>
+          )}
         </div>
-      </footer>
+
+        {/* Footer */}
+        <footer className="app-footer">
+          <div>INE Software Engineer Intern Assignment · React & Node.js</div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <span>demo.inelabteamdev.com</span>
+            <span>·</span>
+            <span>Lightweight PoW Solver</span>
+          </div>
+        </footer>
+      </div>
 
       {/* Modals */}
       <SearchModal
@@ -199,21 +327,18 @@ export default function App() {
         onTrackSuccess={handleTrackSuccess}
         trackedProductIds={trackedProducts.map(p => p.product_id)}
       />
-
       <ProductDetailModal
         product={selectedProduct}
         isOpen={Boolean(selectedProduct)}
         onClose={() => setSelectedProduct(null)}
         onRefreshProduct={loadDashboardData}
       />
-
       <AlertsModal
         isOpen={isAlertsOpen}
         onClose={() => setIsAlertsOpen(false)}
         alerts={alerts}
         onMarkRead={handleMarkAlertsRead}
       />
-
       <HealthModal
         isOpen={isHealthOpen}
         onClose={() => setIsHealthOpen(false)}
