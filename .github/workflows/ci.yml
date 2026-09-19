@@ -1,0 +1,52 @@
+name: CI / Automated Verification
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-tests:
+    name: Test Backend & Lightweight Solver
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'server/package.json'
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Run Challenge Solver verification
+        working-directory: server
+        run: npm run test-solver
+
+  frontend-build:
+    name: Build Frontend (Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'client/package.json'
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Build client production bundle
+        working-directory: client
+        run: npm run build

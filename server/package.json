@@ -1,0 +1,33 @@
+{
+  "name": "ine-price-tracker-server",
+  "version": "1.0.0",
+  "description": "Resilient full-stack price tracking & web scraping backend for INE Store",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "headed": "node src/headed-cli.js",
+    "test-solver": "node src/test-solver.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "chalk": "^5.4.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "playwright": "^1.50.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "scraper",
+    "price-tracker",
+    "ine",
+    "playwright",
+    "webassembly"
+  ],
+  "author": "",
+  "license": "ISC"
+}

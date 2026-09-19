@@ -1,0 +1,103 @@
+const API_BASE = import.meta.env.VITE_API_BASE_URL 
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : '/api';
+
+export const api = {
+  // Search products from mock store
+  async searchCatalog(query = '', page = 1, pageSize = 12) {
+    const res = await fetch(`${API_BASE}/catalog/search?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`);
+    if (!res.ok) throw new Error('Failed to search catalog');
+    return res.json();
+  },
+
+  // Get single product specs from mock store
+  async getProductSpecs(id) {
+    const res = await fetch(`${API_BASE}/catalog/product/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch product specs');
+    return res.json();
+  },
+
+  // Tracked products
+  async getTrackedProducts() {
+    const res = await fetch(`${API_BASE}/products/tracked`);
+    if (!res.ok) throw new Error('Failed to load tracked products');
+    return res.json();
+  },
+
+  async trackProduct(productData) {
+    const res = await fetch(`${API_BASE}/products/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(productData)
+    });
+    if (!res.ok) throw new Error('Failed to track product');
+    return res.json();
+  },
+
+  async untrackProduct(productId) {
+    const res = await fetch(`${API_BASE}/products/track/${productId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to untrack product');
+    return res.json();
+  },
+
+  async updateTracking(productId, data) {
+    const res = await fetch(`${API_BASE}/products/track/${productId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to update tracking');
+    return res.json();
+  },
+
+  // History and logs
+  async getPriceHistory(productId) {
+    const res = await fetch(`${API_BASE}/products/${productId}/history`);
+    if (!res.ok) throw new Error('Failed to load price history');
+    return res.json();
+  },
+
+  async getScrapeLogs(productId) {
+    const res = await fetch(`${API_BASE}/products/${productId}/logs`);
+    if (!res.ok) throw new Error('Failed to load scrape logs');
+    return res.json();
+  },
+
+  // Trigger manual scrape
+  async triggerScrape(productId, engine = 'lightweight') {
+    const res = await fetch(`${API_BASE}/products/${productId}/scrape?engine=${engine}`, {
+      method: 'POST'
+    });
+    if (!res.ok) throw new Error('Manual scrape failed');
+    return res.json();
+  },
+
+  // Alerts
+  async getAlerts() {
+    const res = await fetch(`${API_BASE}/alerts`);
+    if (!res.ok) throw new Error('Failed to load alerts');
+    return res.json();
+  },
+
+  async markAlertsRead() {
+    const res = await fetch(`${API_BASE}/alerts/mark-read`, {
+      method: 'POST'
+    });
+    return res.json();
+  },
+
+  // System stats & change detection
+  async getSystemStats() {
+    const res = await fetch(`${API_BASE}/system/stats`);
+    if (!res.ok) throw new Error('Failed to load system stats');
+    return res.json();
+  },
+
+  async getChangeDetection() {
+    const res = await fetch(`${API_BASE}/system/change-detection`);
+    if (!res.ok) throw new Error('Failed to check store integrity');
+    return res.json();
+  }
+};
