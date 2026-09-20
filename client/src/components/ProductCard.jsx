@@ -78,7 +78,6 @@ export function ProductCard({ product, alert, onSelect, onScrapeNow, onDelete, o
           </div>
         )}
 
-        {/* Price & Stock */}
         <div className="price-metric-box">
           <div>
             <div className="price-label">Current Price</div>

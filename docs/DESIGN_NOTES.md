@@ -1,8 +1,6 @@
-# Engineering Design Notes: INE Storefront Price Tracker & Resilient Scraper
+# Engineering Design Notes: Resilient Storefront Scraper & Price Tracker
 
-**Author:** Software Engineer Candidate  
-**Project:** Product Price Tracker (Web Scraping Assessment)  
-**Target Store:** `https://demo.inelabteamdev.com/`  
+Target Store: `https://demo.inelabteamdev.com/`
 
 ---
 
@@ -32,7 +30,7 @@ The target mock storefront was intentionally engineered with multiple anti-scrap
 | Decision | Chosen Approach | Alternative Considered | Rationale & Trade-off |
 | :--- | :--- | :--- | :--- |
 | **Scraping Engine for Cron** | **Lightweight Node.js Challenge Solver** | Running Headless Playwright / Puppeteer on cron | Free-tier backends (Render.com) are limited to 512MB RAM and sleep when idle. Running a full Chromium instance on every cron tick frequently triggers OOM (Out Of Memory) kills and 50s cold-start timeouts. The lightweight solver uses <45MB RAM and runs 20x faster. |
-| **Observable Headed Run** | **Dedicated Playwright CLI Runner** | Screen recording headless HTTP logs | The rubric specifically asked for a headed run demonstrating mouse dwell, spinner observation, and recovery. Separating this into a standalone script (`npm run headed`) allows visual demonstration while keeping production cron lightweight. |
+| **Observable Headed Run** | **Dedicated Playwright CLI Runner** | Screen recording headless HTTP logs | A standalone headed runner allows visual demonstration of mouse dwell, spinner observation, and recovery while keeping background cron runs fast and lightweight. |
 | **Free-Tier Scheduling** | **External Webhook Trigger (`cron-job.org`)** | Internal `setInterval` / `node-cron` daemon | Render free instances go to sleep after 15 minutes of inactivity. An internal loop stops running when the instance sleeps. An external cron service pings `/api/cron/scrape` over HTTPS every 2 hours, waking the container and ensuring guaranteed execution. |
 | **Database Architecture** | **Supabase PostgreSQL with Local JSON Fallback** | SQLite or In-Memory only | Provides hosted PostgreSQL persistence accessible by both Render backend and external dashboards, while the local fallback guarantees the project runs immediately out-of-the-box in local development. |
 
@@ -66,10 +64,10 @@ During initial prototyping, standard AI generation tools failed across multiple 
 
 ## 4. Honest History and Failure Transparency
 
-In accordance with the assessment requirements, the system never conceals failures:
+The system maintains end-to-end transparency and never conceals failures:
 - **`scrape_logs` Table**: Records every attempt timestamp, engine used, execution latency, retry count, and HTTP status.
 - **Outcome Statuses**:
   - `success`: Succeeded on the first attempt.
   - `retried`: Encountered a transient failure (429 or timeout) and recovered via backoff.
   - `failed`: All attempts exhausted; error message logged and alerted.
-- **UI Transparency**: The dashboard displays the full audit log table for each product, allowing evaluators to verify the exact history of every run.
+- **UI Transparency**: The dashboard displays the full audit log table for each product, providing complete visibility into operational health and reliability.

@@ -8,7 +8,7 @@
 
 ## Live Demo & Links
 
-- **Hosted Web App (Vercel)**: `https://ine-asssignment.vercel.app` *(Replace with your deployed URL)*
+- **Hosted Web App (Vercel)**: `https://ine-asssignment.vercel.app`
 - **GitHub Repository**: `https://github.com/CODESOUL23/iNE-Asssignment`
 
 ---

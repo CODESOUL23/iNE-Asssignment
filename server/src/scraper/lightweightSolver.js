@@ -1,14 +1,7 @@
 /**
- * Lightweight Challenge Solver for INE Mock Storefront
- * 
- * Reconstructed from client-side challenge verification:
- * 1. Fetch challenge parameters: salt, difficulty, WebAssembly binary
- * 2. Generate client telemetry attestation
- * 3. Perform Proof-of-Work (PoW) nonce search matching difficulty
- * 4. Execute WebAssembly bytecode in Node.js V8 runtime
- * 5. Derive key & obtain session JWT token from /api/session
- * 6. Fetch encrypted price payload from /api/products/:id/price
- * 7. XOR decrypt payload with derived session key
+ * Challenge Solver
+ * Resolves PoW nonces, evaluates WebAssembly verification bytecode,
+ * derives session credentials, and decrypts encrypted price quotes.
  */
 
 function vr() {
@@ -226,7 +219,6 @@ export async function solveChallengeAndFetchPrice(productId, storeUrl = 'https:/
 
   const a = await chalRes.json();
 
-  // 2. Synthesize Attestation passing all client validation checks
   const now = Date.now();
   const frames = [16.65, 16.71, 16.58, 16.69, 16.62, 16.74, 16.61, 16.67];
   const dwellMs = 1200;
@@ -265,7 +257,6 @@ export async function solveChallengeAndFetchPrice(productId, storeUrl = 'https:/
   const o = JSON.stringify(attObj);
   const s = gr(o);
 
-  // 3. Run WASM and Proof-of-Work
   const c = await Cr(a.wasm, br(a.salt, s));
   const l = xr(a.salt, a.difficulty);
   const u = yr(a.salt, c, s);
@@ -279,7 +270,6 @@ export async function solveChallengeAndFetchPrice(productId, storeUrl = 'https:/
     productId: Number(productId)
   };
 
-  // 4. Request Session Token
   const sessRes = await fetch(`${storeUrl}/api/session`, {
     method: 'POST',
     headers: {
@@ -302,7 +292,6 @@ export async function solveChallengeAndFetchPrice(productId, storeUrl = 'https:/
 
   const { token: p } = await sessRes.json();
 
-  // 5. Fetch Encrypted Price Payload
   const priceRes = await fetch(`${storeUrl}/api/products/${productId}/price`, {
     headers: {
       Authorization: `Bearer ${p}`,
@@ -323,7 +312,6 @@ export async function solveChallengeAndFetchPrice(productId, storeUrl = 'https:/
     throw new Error('Malformed price payload from store');
   }
 
-  // 6. Decrypt Price Quote
   const quote = wr(priceData.e, p);
   const responseTimeMs = Date.now() - startTime;
 

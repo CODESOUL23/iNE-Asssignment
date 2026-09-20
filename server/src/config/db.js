@@ -34,9 +34,7 @@ if (isSupabaseConfigured) {
   console.log('[DATABASE] Supabase credentials not provided. Using persistent local fallback storage.');
 }
 
-// -----------------------------------------------------------------------------
-// Persistent Local Storage Fallback (Ensures 100% functionality out-of-the-box)
-// -----------------------------------------------------------------------------
+// Local file fallback for offline/development use
 const DATA_DIR = path.resolve(__dirname, '../../data');
 const DATA_FILE = path.join(DATA_DIR, 'local_db.json');
 
@@ -71,13 +69,9 @@ function writeLocalDb(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
-// -----------------------------------------------------------------------------
-// Database Access Layer (Unified API for both Supabase & Local Fallback)
-// -----------------------------------------------------------------------------
 export const db = {
   isSupabase: Boolean(supabase),
 
-  // 1. Tracked Products
   async getTrackedProducts() {
     if (supabase) {
       const { data, error } = await supabase
@@ -195,7 +189,6 @@ export const db = {
     return null;
   },
 
-  // 2. Price History
   async getPriceHistory(productId, limit = 50) {
     const pid = Number(productId);
     if (supabase) {
@@ -298,7 +291,6 @@ export const db = {
     return payload;
   },
 
-  // 4. Alerts (Price Drop & Back In Stock)
   async getAlerts(limit = 30) {
     if (supabase) {
       const { data, error } = await supabase
@@ -365,7 +357,6 @@ export const db = {
     return true;
   },
 
-  // 5. System Analytics / Overview
   async getSystemStats() {
     const products = await this.getTrackedProducts();
     const inStock = products.filter(p => (p.current_stock ?? 0) > 0).length;

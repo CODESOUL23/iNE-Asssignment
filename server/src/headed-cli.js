@@ -26,12 +26,8 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
-console.log(chalk.bold.cyan(`
-╔═════════════════════════════════════════════════════════════════╗
-║          INE STORE OBSERVABLE HEADED SCRAPER RUNNER             ║
-║  Watching Playwright navigate, dwell, solve & reveal in browser ║
-╚═════════════════════════════════════════════════════════════════╝
-`));
+console.log(chalk.bold.cyan('\nINE Headed Browser Scraper Runner'));
+console.log(chalk.gray('----------------------------------------\n'));
 
 console.log(chalk.yellow(`Target Product ID: ${productId}`));
 console.log(chalk.yellow(`Slow-Mo Delay:    ${slowMo}ms`));

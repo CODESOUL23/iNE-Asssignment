@@ -28,7 +28,6 @@ export function Sidebar({
 
   return (
     <>
-      {/* Mobile Drawer Backdrop */}
       <div
         className={`sidebar-backdrop ${isOpen ? 'active' : ''}`}
         onClick={onClose}
@@ -36,7 +35,6 @@ export function Sidebar({
       />
 
       <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
-        {/* Brand */}
         <div className="sidebar-brand">
           <div className="sidebar-brand-icon">
             <Activity size={18} />
@@ -56,7 +54,6 @@ export function Sidebar({
           </button>
         </div>
 
-        {/* Search */}
         <div className="sidebar-search">
           <Search size={14} className="sidebar-search-icon" />
           <input
@@ -67,7 +64,6 @@ export function Sidebar({
           />
         </div>
 
-        {/* Category Navigation */}
         <div>
           <div className="sidebar-section-title">Categories</div>
           <nav className="sidebar-nav">
@@ -96,7 +92,6 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Quick Actions at bottom */}
         <div className="sidebar-actions">
           <button
             type="button"

@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Notebook & Sticky Notes — Light Stationery Theme
-   Cream paper background, ruled lines, spiral binding, pastel sticky notes
-   ========================================================================== */
+/* Theme & Global Styles */
 
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap');
 
@@ -11,13 +8,13 @@
   --font-hand: 'Caveat', cursive;
 
   /* Notebook Paper Palette */
-  --bg-page: #f5f0e8;            /* Warm cream paper */
-  --bg-page-lines: #d6cfc4;      /* Faint ruled lines */
-  --bg-white: #fffdf9;           /* Clean white card */
-  --bg-sidebar: #eee8dc;         /* Slightly darker sidebar */
-  --bg-navbar: #fffdf9;          /* Clean navbar */
+  --bg-page: #f5f0e8;           
+  --bg-page-lines: #d6cfc4;     
+  --bg-white: #fffdf9;          
+  --bg-sidebar: #eee8dc;        
+  --bg-navbar: #fffdf9;         
 
-  /* Sticky Note Colors (pastel, realistic) */
+  /* Sticky Note Palette */
   --sticky-yellow: #fff9c4;
   --sticky-yellow-border: #f0e68c;
   --sticky-blue: #b3e5fc;
@@ -42,9 +39,9 @@
   --text-on-sticky: #3c3428;
 
   /* Accent */
-  --accent-ink: #3d5a80;          /* Blue-grey ink */
+  --accent-ink: #3d5a80;         
   --accent-ink-hover: #2c4a6e;
-  --accent-red: #c0392b;          /* Red pen */
+  --accent-red: #c0392b;         
   --accent-green: #27ae60;
 
   /* Status */
@@ -89,13 +86,12 @@ body {
   width: 100%;
 }
 
-/* ── Notebook ruled-line background ── */
+/* Background pattern */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  /* Horizontal ruled lines every 28px, like a real notebook */
-  background-image:
+    background-image:
     repeating-linear-gradient(
       to bottom,
       transparent,
@@ -108,7 +104,7 @@ body::before {
   z-index: 0;
 }
 
-/* ── Spiral binding holes along the top ── */
+/* Spiral binding */
 body::after {
   content: '';
   position: fixed;
@@ -131,26 +127,24 @@ body::after {
   font-feature-settings: "tnum" 1;
 }
 
-/* ── Scrollbar ── */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
-/* ══════════════════════════════════════════
-   LAYOUT — Sidebar + Main Content
-   ══════════════════════════════════════════ */
+/* Layout */
 
 .app-shell {
   display: flex;
   min-height: 100dvh;
-  padding-top: 40px;  /* space for spiral binding */
+  padding-top: 40px; 
   position: relative;
   z-index: 1;
   width: 100%;
 }
 
-/* ── Left Sidebar ── */
+/* Sidebar */
 .sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
@@ -316,7 +310,7 @@ body::after {
   border-top: 1px dashed var(--border-medium);
 }
 
-/* ── Main Content Area ── */
+/* Main Content */
 .main-content {
   flex: 1;
   min-width: 0;
@@ -324,7 +318,7 @@ body::after {
   flex-direction: column;
 }
 
-/* ── Top Bar (inside main content) ── */
+/* Top Bar */
 .topbar {
   background: var(--bg-navbar);
   border-bottom: 1px solid var(--border-light);
@@ -407,15 +401,13 @@ body::after {
   display: inline-block;
 }
 
-/* ── Page Content Container ── */
+/* Page Content */
 .page-content {
   padding: 24px 28px 60px;
   flex: 1;
 }
 
-/* ══════════════════════════════════════════
-   BUTTONS
-   ══════════════════════════════════════════ */
+/* Buttons */
 
 .btn {
   display: inline-flex;
@@ -487,7 +479,7 @@ body::after {
   font-size: 0.75rem;
 }
 
-/* ── Category Quick-Scroll Chips ── */
+/* Category Chips */
 .category-scroll-container {
   display: none;
   align-items: center;
@@ -543,9 +535,7 @@ body::after {
   text-align: center;
 }
 
-/* ══════════════════════════════════════════
-   STICKY NOTE KPI CARDS
-   ══════════════════════════════════════════ */
+/* KPI Cards */
 
 .kpi-grid {
   display: grid;
@@ -566,7 +556,6 @@ body::after {
   min-height: 110px;
 }
 
-/* Each sticky note has a slight random-looking tilt */
 .kpi-card:nth-child(1) {
   background: var(--sticky-yellow);
   border-bottom: 3px solid var(--sticky-yellow-border);
@@ -598,7 +587,6 @@ body::after {
   box-shadow: 3px 5px 10px rgba(0,0,0,0.15);
 }
 
-/* Folded corner effect */
 .kpi-card::after {
   content: '';
   position: absolute;
@@ -644,9 +632,7 @@ body::after {
   color: var(--text-on-sticky);
 }
 
-/* ══════════════════════════════════════════
-   ALERTS BANNER NOTIFICATION
-   ══════════════════════════════════════════ */
+/* Alerts Banner */
 .alerts-banner {
   background: #fffbeb;
   border: 1px solid #fde68a;
@@ -713,9 +699,6 @@ body::after {
   margin-bottom: 2px;
 }
 
-/* ══════════════════════════════════════════
-   TOOLBAR
-   ══════════════════════════════════════════ */
 
 .toolbar-section {
   display: flex;
@@ -758,9 +741,7 @@ body::after {
   color: #fff;
 }
 
-/* ══════════════════════════════════════════
-   PRODUCT CARDS — Sticky Note Style
-   ══════════════════════════════════════════ */
+/* Product Cards */
 
 .products-grid {
   display: grid;
@@ -769,7 +750,6 @@ body::after {
   margin-bottom: 40px;
 }
 
-/* Each product card looks like a sticky note pinned to the notebook */
 .product-b2b-card {
   background: var(--bg-white);
   border: 1px solid var(--border-light);
@@ -795,7 +775,6 @@ body::after {
   border-left-width: 5px;
 }
 
-/* Pin dot on card top-right */
 .product-b2b-card::before {
   content: '';
   position: absolute;
@@ -877,9 +856,7 @@ body::after {
   border: 1px solid #ef9a9a;
 }
 
-/* ══════════════════════════════════════════
-   DATA TABLE
-   ══════════════════════════════════════════ */
+/* Table */
 
 .b2b-table-container {
   background: var(--bg-white);
@@ -920,9 +897,7 @@ body::after {
   cursor: pointer;
 }
 
-/* ══════════════════════════════════════════
-   MODALS
-   ══════════════════════════════════════════ */
+/* Modals */
 
 .modal-overlay {
   position: fixed;
@@ -1027,9 +1002,7 @@ body::after {
   background-color: var(--accent-red);
 }
 
-/* ══════════════════════════════════════════
-   SEARCH INPUT (for command palette inside modals)
-   ══════════════════════════════════════════ */
+/* Search Input */
 
 .search-input-field {
   width: 100%;
@@ -1053,9 +1026,7 @@ body::after {
   color: var(--text-muted);
 }
 
-/* ══════════════════════════════════════════
-   FOOTER
-   ══════════════════════════════════════════ */
+/* Footer */
 
 .app-footer {
   border-top: 1px dashed var(--border-medium);
@@ -1070,9 +1041,7 @@ body::after {
   gap: 10px;
 }
 
-/* ══════════════════════════════════════════
-   UTILITIES & KEYFRAMES
-   ══════════════════════════════════════════ */
+/* Utilities */
 
 .spin {
   animation: spin 1s linear infinite;
@@ -1082,20 +1051,9 @@ body::after {
   to { transform: rotate(360deg); }
 }
 
-/* ══════════════════════════════════════════
-   FLUID RESPONSIVE MEDIA QUERIES & BREAKPOINTS
-   Tailored for all aspect ratios:
-   - Ultrawide (21:9 / 32:9, >=1500px)
-   - Large Desktop (1200px - 1499px)
-   - Medium Laptops & Tablet Landscape (960px - 1199px)
-   - Tablets Portrait & Phablets (<=860px)
-   - Standard Mobile (<=640px)
-   - Narrow Smartphones (<=400px)
-   - Mobile Landscape (max-height <=520px)
-   - Accessibility & Print
-   ══════════════════════════════════════════ */
+/* Responsive Media Queries */
 
-/* ── 1. Ultrawide Displays (>= 1500px, 2K/4K/Ultrawide 21:9 & 32:9) ── */
+/* Ultrawide Displays (>= 1500px) */
 @media (min-width: 1500px) {
   .page-content {
     max-width: 1600px;
@@ -1112,7 +1070,7 @@ body::after {
   }
 }
 
-/* ── 2. Standard Desktop & Large Laptops (1200px - 1499px) ── */
+/* Desktop (1200px - 1499px) */
 @media (min-width: 1200px) and (max-width: 1499px) {
   .kpi-grid {
     grid-template-columns: repeat(5, 1fr);
@@ -1123,7 +1081,7 @@ body::after {
   }
 }
 
-/* ── 3. Medium Laptops & Tablets Landscape (960px - 1199px) ── */
+/* Laptops & Tablets (960px - 1199px) */
 @media (max-width: 1199px) {
   .sidebar {
     width: 220px;
@@ -1153,7 +1111,7 @@ body::after {
   }
 }
 
-/* ── 4. Tablets & Phablets (<= 860px) — Sidebar converts to Off-Canvas Drawer ── */
+/* Tablets & Phablets (<= 860px) */
 @media (max-width: 860px) {
   .mobile-menu-toggle {
     display: inline-flex;
@@ -1202,13 +1160,11 @@ body::after {
     display: inline-flex;
   }
 
-  /* Quick-Scroll category chips visible on mobile/tablet */
-  .category-scroll-container {
+    .category-scroll-container {
     display: flex;
   }
 
-  /* Flatten KPI sticky note rotations on tablets/mobile to avoid horizontal viewport overflow */
-  .kpi-card {
+    .kpi-card {
     transform: none !important;
   }
   .kpi-card:hover {
@@ -1233,8 +1189,7 @@ body::after {
     padding: 8px 16px;
   }
 
-  /* Table responsive scroll container */
-  .b2b-table-container {
+    .b2b-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
@@ -1249,10 +1204,9 @@ body::after {
   }
 }
 
-/* ── 5. Standard Mobile Viewports (<= 640px, portrait smartphones) ── */
+/* Mobile (<= 640px) */
 @media (max-width: 640px) {
-  /* Smaller spiral binding to maximize vertical screen space */
-  body::after {
+    body::after {
     height: 22px;
     background-size: 28px 22px;
     background-position: 8px 0;
@@ -1284,8 +1238,7 @@ body::after {
     display: none;
   }
 
-  /* Icon-only buttons in topbar to prevent header squishing */
-  .desktop-search-text {
+    .desktop-search-text {
     display: none;
   }
 
@@ -1311,8 +1264,7 @@ body::after {
     padding: 14px 12px 36px;
   }
 
-  /* Sticky Note KPI Grid: 2 clean columns with 5th card spanning across */
-  .kpi-grid {
+    .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     margin-bottom: 16px;
@@ -1335,8 +1287,7 @@ body::after {
     font-size: 0.72rem;
   }
 
-  /* Alerts banner full width stacked */
-  .alerts-banner {
+    .alerts-banner {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
@@ -1349,8 +1300,7 @@ body::after {
     height: 34px;
   }
 
-  /* Toolbar */
-  .toolbar-section {
+    .toolbar-section {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
@@ -1363,8 +1313,7 @@ body::after {
     gap: 4px;
   }
 
-  /* Products grid 1 column on phones */
-  .products-grid {
+    .products-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }
@@ -1381,8 +1330,7 @@ body::after {
     font-size: 1.1rem;
   }
 
-  /* Modals full-width & touch friendly */
-  .modal-overlay {
+    .modal-overlay {
     padding: 8px;
   }
 
@@ -1438,7 +1386,7 @@ body::after {
   }
 }
 
-/* ── 6. Small / Narrow Smartphones (<= 400px, e.g. iPhone SE, Fold external screen) ── */
+/* Small Mobile (<= 400px) */
 @media (max-width: 400px) {
   html {
     font-size: 14px;
@@ -1484,7 +1432,7 @@ body::after {
   }
 }
 
-/* ── 7. Landscape Mode on Mobile Devices (aspect-ratio >= 2:1, short height <= 520px) ── */
+/* Mobile Landscape */
 @media (max-height: 520px) and (orientation: landscape) {
   body::after {
     height: 16px;
@@ -1526,7 +1474,7 @@ body::after {
   }
 }
 
-/* ── 8. Accessibility: Reduced Motion ── */
+/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -1536,7 +1484,7 @@ body::after {
   }
 }
 
-/* ── 9. Print Stylesheet ── */
+/* Print */
 @media print {
   body::before, body::after, .sidebar, .sidebar-backdrop, .topbar, .alerts-banner, .view-mode-toggle, .category-scroll-container {
     display: none !important;

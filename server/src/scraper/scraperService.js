@@ -1,11 +1,7 @@
 /**
  * Scraper Orchestration Service
- * 
- * Implements the core assignment evaluation criteria:
- * 1. Scraping Reliability: Retries with exponential backoff & jitter across unattended runs
- * 2. Correctness under Difficulty: Extracts right price & stock, never writes empty/corrupt data
- * 3. Honest History and Logging: Accurately records success, retries, and failures with timestamps
- * 4. Alerting: Detects price drops and back-in-stock events
+ * Handles single-product and batch scraping with exponential backoff,
+ * audit logging, state updates, and price/stock alert triggers.
  */
 
 import { solveChallengeAndFetchPrice } from './lightweightSolver.js';
@@ -74,13 +70,13 @@ export async function scrapeProduct(productId, options = {}) {
 
   const totalDurationMs = Date.now() - startTime;
 
-  // Determine honest outcome status
+  // Determine scrape status
   let status = 'failed';
   if (quote) {
     status = attemptsUsed === 1 ? 'success' : 'retried';
   }
 
-  // 1. Record honest scrape log (required by rubric)
+  // Persist scrape log
   if (!skipDb) {
     try {
       await db.addScrapeLog({
@@ -98,10 +94,9 @@ export async function scrapeProduct(productId, options = {}) {
     }
   }
 
-  // 2. If failed, do NOT write corrupt/empty data to tracked products or history
+  // If failed, preserve existing price and stock data
   if (!quote) {
     if (!skipDb) {
-      // Optionally update tracked product error status without modifying historical price
       await db.updateTrackedProduct(pid, {
         status: 'error',
         last_scraped_at: new Date().toISOString()
@@ -118,7 +113,6 @@ export async function scrapeProduct(productId, options = {}) {
   }
 
   if (!skipDb) {
-    // 3. If succeeded, fetch current tracked product to check for alerts & history
     const currentProduct = await db.getTrackedProductById(pid);
 
     const oldPrice = (currentProduct && currentProduct.current_price !== null && currentProduct.current_price !== undefined)
@@ -130,7 +124,7 @@ export async function scrapeProduct(productId, options = {}) {
       : null;
     const newStock = Number(quote.stock || 0);
 
-    // 4. Record Price History
+    // Record price snapshot
     await db.addPriceHistory({
       productId: pid,
       price: newPrice,
@@ -140,7 +134,7 @@ export async function scrapeProduct(productId, options = {}) {
       capturedAt: new Date().toISOString()
     });
 
-    // 5. Update Tracked Product
+    // Update product snapshot
     await db.updateTrackedProduct(pid, {
       current_price: newPrice,
       mrp: quote.mrp ? Number(quote.mrp) : null,
@@ -150,7 +144,7 @@ export async function scrapeProduct(productId, options = {}) {
       last_scraped_at: new Date().toISOString()
     });
 
-    // 6. Check for Alerts (Bonus Feature)
+    // Evaluate alert conditions
     if (oldPrice !== null && newPrice < oldPrice) {
       const diff = oldPrice - newPrice;
       const pct = Math.round((diff / oldPrice) * 100);

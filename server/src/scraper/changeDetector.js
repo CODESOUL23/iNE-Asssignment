@@ -1,8 +1,7 @@
 /**
- * Store Structure & Schema Change Detector (Bonus Feature)
- * 
+ * Store Structure & Schema Change Detector
  * Verifies whether the mock store's API schema, challenge structure,
- * or HTML markup has changed. Flags warnings in the dashboard.
+ * or layout endpoints remain operational and expected.
  */
 
 export async function detectStoreChanges(storeUrl = 'https://demo.inelabteamdev.com') {
@@ -14,7 +13,6 @@ export async function detectStoreChanges(storeUrl = 'https://demo.inelabteamdev.
     details: []
   };
 
-  // 1. Check Catalog API Structure
   try {
     const res = await fetch(`${storeUrl}/api/catalog?page=1&pageSize=1`);
     if (res.ok) {
@@ -36,7 +34,6 @@ export async function detectStoreChanges(storeUrl = 'https://demo.inelabteamdev.
     checks.details.push(`Catalog API unreachable: ${err.message}`);
   }
 
-  // 2. Check Challenge API Structure
   try {
     const res = await fetch(`${storeUrl}/api/challenge`);
     if (res.ok) {
@@ -54,7 +51,6 @@ export async function detectStoreChanges(storeUrl = 'https://demo.inelabteamdev.
     checks.details.push(`Challenge API unreachable: ${err.message}`);
   }
 
-  // 3. Check Layout API
   try {
     const res = await fetch(`${storeUrl}/api/layout`);
     if (res.ok) {

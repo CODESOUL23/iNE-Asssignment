@@ -4,21 +4,18 @@ const API_BASE = rawBase
   : '/api';
 
 export const api = {
-  // Search products from mock store
   async searchCatalog(query = '', page = 1, pageSize = 12) {
     const res = await fetch(`${API_BASE}/catalog/search?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`);
     if (!res.ok) throw new Error('Failed to search catalog');
     return res.json();
   },
 
-  // Get single product specs from mock store
   async getProductSpecs(id) {
     const res = await fetch(`${API_BASE}/catalog/product/${id}`);
     if (!res.ok) throw new Error('Failed to fetch product specs');
     return res.json();
   },
 
-  // Tracked products
   async getTrackedProducts() {
     const res = await fetch(`${API_BASE}/products/tracked`);
     if (!res.ok) throw new Error('Failed to load tracked products');
@@ -53,7 +50,6 @@ export const api = {
     return res.json();
   },
 
-  // History and logs
   async getPriceHistory(productId) {
     const res = await fetch(`${API_BASE}/products/${productId}/history`);
     if (!res.ok) throw new Error('Failed to load price history');
@@ -66,7 +62,6 @@ export const api = {
     return res.json();
   },
 
-  // Trigger manual scrape for single product
   async triggerScrape(productId, engine = 'lightweight') {
     const res = await fetch(`${API_BASE}/products/${productId}/scrape?engine=${engine}`, {
       method: 'POST'
@@ -75,7 +70,6 @@ export const api = {
     return res.json();
   },
 
-  // Trigger batch scrape across all tracked products (or due products)
   async scrapeAllProducts(force = true) {
     const res = await fetch(`${API_BASE}/products/scrape-all?force=${force}`, {
       method: 'POST'
@@ -84,7 +78,6 @@ export const api = {
     return res.json();
   },
 
-  // Alerts
   async getAlerts() {
     const res = await fetch(`${API_BASE}/alerts`);
     if (!res.ok) throw new Error('Failed to load alerts');
@@ -98,7 +91,6 @@ export const api = {
     return res.json();
   },
 
-  // System stats & change detection
   async getSystemStats() {
     const res = await fetch(`${API_BASE}/system/stats`);
     if (!res.ok) throw new Error('Failed to load system stats');

@@ -163,7 +163,6 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
         </div>
 
         <div className="modal-dialog-body">
-          {/* Search Box */}
           <div style={{ position: 'relative', marginBottom: '10px' }}>
             {isUrlInput ? (
               <Link2 size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-ink)' }} />
@@ -195,7 +194,6 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
             )}
           </div>
 
-          {/* Quick Filter Chips */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginRight: '2px' }}>Quick search:</span>
             {QUICK_TAGS.map((tag) => (
@@ -219,7 +217,6 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
             ))}
           </div>
 
-          {/* Error Banner */}
           {errorMessage && (
             <div style={{
               background: 'var(--status-danger-bg)',
@@ -238,7 +235,6 @@ export function SearchModal({ isOpen, onClose, onTrackSuccess, trackedProductIds
             </div>
           )}
 
-          {/* Results List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
             {results.map((product) => {
               const isAlreadyTracked = trackedProductIds.includes(product.id);

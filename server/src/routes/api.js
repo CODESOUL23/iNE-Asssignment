@@ -80,10 +80,6 @@ async function getFullCatalog() {
 // Warm up the catalog cache immediately on module load
 getFullCatalog().catch(err => console.warn('[Catalog Warmup Error]:', err.message));
 
-// -----------------------------------------------------------------------------
-// Catalog & Search Routes
-// -----------------------------------------------------------------------------
-
 // Search products by full or partial name, brand, SKU, ID, or pasted URL
 router.get('/catalog/search', async (req, res) => {
   try {
@@ -170,10 +166,6 @@ router.get('/catalog/product/:id', async (req, res) => {
   }
 });
 
-// -----------------------------------------------------------------------------
-// Tracked Products Management
-// -----------------------------------------------------------------------------
-
 // List all tracked products
 router.get('/products/tracked', async (req, res) => {
   try {
@@ -247,10 +239,6 @@ router.patch('/products/track/:productId', async (req, res) => {
   }
 });
 
-// -----------------------------------------------------------------------------
-// History, Logs & Scrape Triggers
-// -----------------------------------------------------------------------------
-
 // Price and stock time-series history
 router.get('/products/:productId/history', async (req, res) => {
   try {
@@ -263,7 +251,7 @@ router.get('/products/:productId/history', async (req, res) => {
   }
 });
 
-// Honest per-product scrape attempts log
+// Scrape attempts log
 router.get('/products/:productId/logs', async (req, res) => {
   try {
     const pid = req.params.productId;
@@ -275,7 +263,7 @@ router.get('/products/:productId/logs', async (req, res) => {
   }
 });
 
-// Manually trigger a scrape right now
+// Manually trigger a scrape
 router.post('/products/:productId/scrape', async (req, res) => {
   try {
     const pid = req.params.productId;
@@ -311,10 +299,6 @@ router.post('/products/scrape-all', async (req, res) => {
   }
 });
 
-// -----------------------------------------------------------------------------
-// Alerts & Notifications
-// -----------------------------------------------------------------------------
-
 router.get('/alerts', async (req, res) => {
   try {
     const alerts = await db.getAlerts();
@@ -332,10 +316,6 @@ router.post('/alerts/mark-read', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// -----------------------------------------------------------------------------
-// System Analytics & Change Detection
-// -----------------------------------------------------------------------------
 
 router.get('/system/stats', async (req, res) => {
   try {
@@ -355,10 +335,7 @@ router.get('/system/change-detection', async (req, res) => {
   }
 });
 
-// -----------------------------------------------------------------------------
-// Scheduled Cron Endpoint (for cron-job.org / external cron)
-// -----------------------------------------------------------------------------
-
+// Scheduled Cron Endpoint (for external cron triggers)
 router.post('/cron/scrape', async (req, res) => {
   // Validate bearer token or secret query parameter
   const authHeader = req.headers.authorization || '';

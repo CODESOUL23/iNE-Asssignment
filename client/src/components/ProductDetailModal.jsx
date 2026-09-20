@@ -67,7 +67,6 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
 
   if (!isOpen || !product) return null;
 
-  // Render pure SVG Price Trend Chart with Warm Amber Palette
   const renderSvgChart = () => {
     if (history.length === 0) {
       return (
@@ -117,19 +116,16 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
       <div style={{ width: '100%', overflowX: 'auto' }}>
         <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
           <defs>
-            {/* Ink Blue Gradient */}
             <linearGradient id="warmAmberGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#3d5a80" stopOpacity="0.25" />
               <stop offset="100%" stopColor="#3d5a80" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
-          {/* Grid lines */}
           <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="var(--border-light)" strokeDasharray="4 4" />
           <line x1={paddingX} y1={height / 2} x2={width - paddingX} y2={height / 2} stroke="var(--border-light)" strokeDasharray="4 4" />
           <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="var(--border-light)" />
 
-          {/* Monospaced Axis Labels */}
           <text x={paddingX - 8} y={paddingY + 4} fill="var(--text-muted)" fontSize="10" textAnchor="end" fontFamily="var(--font-mono)">
             ₹{Math.round(maxPrice)}
           </text>
@@ -137,13 +133,9 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
             ₹{Math.round(minPrice)}
           </text>
 
-          {/* Area fill */}
           <path d={areaD} fill="url(#warmAmberGradient)" />
-
-          {/* Ink Line */}
           <path d={pathD} fill="none" stroke="#3d5a80" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
 
-          {/* Data Points */}
           {points.map((pt, i) => (
             <g key={i}>
               <circle cx={pt.x} cy={pt.y} r="4" fill="#fffdf9" stroke="#3d5a80" strokeWidth="2" />
@@ -157,7 +149,6 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className="modal-dialog-header">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -189,7 +180,6 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
           </div>
         </div>
 
-        {/* Live Status & Probe Trigger Toolbar */}
         <div className="modal-live-toolbar">
           <div className="modal-live-stats">
             <div>
@@ -233,7 +223,6 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
           </div>
         </div>
 
-        {/* Tab Navigation */}
         <div className="modal-tab-nav">
           <button
             type="button"
@@ -284,7 +273,6 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
           </button>
         </div>
 
-        {/* Body Content */}
         <div className="modal-dialog-body">
           {activeTab === 'chart' && (
             <div>

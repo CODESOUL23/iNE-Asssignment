@@ -36,7 +36,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint (used by cron-job.org / monitoring to keep Render instance warm)
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -46,24 +46,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount API routes
 app.use('/api', apiRouter);
 
-// Root route
 app.get('/', (req, res) => {
   res.json({
     message: 'INE Product Price Tracker Backend API is active.',
     health: '/api/health',
-    docs: 'https://github.com/your-username/ine-price-tracker'
+    docs: 'https://github.com/CODESOUL23/iNE-Asssignment'
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`========================================================`);
-  console.log(`INE Price Tracker Server running on port ${PORT}`);
-  console.log(`API Base: http://localhost:${PORT}/api`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-  console.log(`========================================================`);
+  console.log(`Server running on port ${PORT} (API Base: http://localhost:${PORT}/api)`);
 
   // Start background periodic scraping scheduler (checks every 60s for products due)
   const SCHEDULER_INTERVAL_MS = 60 * 1000;

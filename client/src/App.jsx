@@ -165,7 +165,6 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Left Sidebar (Desktop fixed + Mobile slide-over drawer) */}
       <Sidebar
         categories={categories}
         categoryCounts={categoryCounts}
@@ -182,9 +181,7 @@ export default function App() {
         onClose={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* Main Content Area */}
       <div className="main-content">
-        {/* Top Bar */}
         <Navbar
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenAlerts={() => setIsAlertsOpen(true)}
@@ -196,7 +193,6 @@ export default function App() {
         />
 
         <div className="page-content">
-          {/* Quick-Scroll Category Pills (visible on mobile/tablet for instant category access) */}
           <div className="category-scroll-container">
             <button
               type="button"
@@ -217,10 +213,8 @@ export default function App() {
             ))}
           </div>
 
-          {/* Sticky Note KPI Grid */}
           <StatsBar stats={stats} />
 
-          {/* Active Alerts Banner */}
           {unreadAlertsCount > 0 && (
             <div className="alerts-banner" onClick={() => setIsAlertsOpen(true)}>
               <div className="alerts-banner-content">
@@ -248,7 +242,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Toolbar */}
           <div className="toolbar-section">
             <div className="toolbar-left">
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -292,7 +285,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Content */}
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
               <RefreshCw size={20} className="spin" style={{ margin: '0 auto 10px', display: 'block', color: 'var(--accent-ink)' }} />
@@ -426,7 +418,6 @@ export default function App() {
 
       </div>
 
-      {/* Modals */}
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
@@ -450,7 +441,6 @@ export default function App() {
         onClose={() => setIsHealthOpen(false)}
       />
 
-      {/* Floating Status Toast */}
       {toast && (
         <div style={{
           position: 'fixed',

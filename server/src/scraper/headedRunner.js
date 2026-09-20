@@ -1,13 +1,7 @@
 /**
  * Observable Headed Browser Runner (Playwright)
- * 
- * Specifically crafted for the "Observable (Headed) Run" requirement:
- * 1. Launches visible Chromium browser with slow-mo
- * 2. Navigates to the product page on INE Store
- * 3. Simulates realistic human mouse trajectories & dwell timing (>600ms)
- * 4. Clicks the "Reveal price" button
- * 5. Handles synthetic click drops, slow network responses, and client retries
- * 6. Scrapes live rendered price, stock, and status directly from DOM
+ * Simulates user interactions (pointer movements, dwell timing, click retries)
+ * to verify price and stock rendering in a real browser.
  */
 
 import { chromium } from 'playwright';

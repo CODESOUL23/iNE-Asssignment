@@ -12,7 +12,6 @@ export function StatsBar({ stats }) {
 
   return (
     <div className="kpi-grid">
-      {/* Tracked SKUs — yellow sticky */}
       <div className="kpi-card">
         <div className="kpi-header">
           <span>Tracked</span>
@@ -24,7 +23,6 @@ export function StatsBar({ stats }) {
         </div>
       </div>
 
-      {/* In Stock — blue sticky */}
       <div className="kpi-card">
         <div className="kpi-header">
           <span>In Stock</span>
@@ -38,7 +36,6 @@ export function StatsBar({ stats }) {
         </div>
       </div>
 
-      {/* Out of Stock — pink sticky */}
       <div className="kpi-card">
         <div className="kpi-header">
           <span>Stockouts</span>
@@ -52,7 +49,6 @@ export function StatsBar({ stats }) {
         </div>
       </div>
 
-      {/* Solver Health — green sticky */}
       <div className="kpi-card">
         <div className="kpi-header">
           <span>Solver</span>
@@ -64,7 +60,6 @@ export function StatsBar({ stats }) {
         </div>
       </div>
 
-      {/* Database — orange sticky */}
       <div className="kpi-card">
         <div className="kpi-header">
           <span>Storage</span>
