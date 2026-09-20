@@ -65,12 +65,21 @@ export const api = {
     return res.json();
   },
 
-  // Trigger manual scrape
+  // Trigger manual scrape for single product
   async triggerScrape(productId, engine = 'lightweight') {
     const res = await fetch(`${API_BASE}/products/${productId}/scrape?engine=${engine}`, {
       method: 'POST'
     });
     if (!res.ok) throw new Error('Manual scrape failed');
+    return res.json();
+  },
+
+  // Trigger batch scrape across all tracked products (or due products)
+  async scrapeAllProducts(force = true) {
+    const res = await fetch(`${API_BASE}/products/scrape-all?force=${force}`, {
+      method: 'POST'
+    });
+    if (!res.ok) throw new Error('Failed to refresh tracked products');
     return res.json();
   },
 

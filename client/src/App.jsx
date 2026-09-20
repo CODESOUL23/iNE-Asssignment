@@ -8,7 +8,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { AlertsModal } from './components/AlertsModal';
 import { HealthModal } from './components/HealthModal';
 import { api } from './services/api';
-import { Plus, RefreshCw, LayoutGrid, Table, Trash2, BarChart3, Check } from 'lucide-react';
+import { Plus, RefreshCw, LayoutGrid, Table, Trash2, BarChart3, Check, Bell, TrendingDown, CheckCircle } from 'lucide-react';
 
 export default function App() {
   const [trackedProducts, setTrackedProducts] = useState([]);
@@ -55,6 +55,22 @@ export default function App() {
       setTrackedProducts(productsData || []);
       setStats(statsData || null);
       setAlerts(alertsData || []);
+
+      // If any tracked product hasn't been scraped yet, quietly auto-sync in background
+      const unscraped = (productsData || []).filter(p => !p.last_scraped_at);
+      if (unscraped.length > 0) {
+        api.scrapeAllProducts(false).then(() => {
+          Promise.all([
+            api.getTrackedProducts(),
+            api.getSystemStats(),
+            api.getAlerts()
+          ]).then(([prods, st, alt]) => {
+            setTrackedProducts(prods || []);
+            setStats(st || null);
+            setAlerts(alt || []);
+          });
+        }).catch(() => {});
+      }
     } catch (err) {
       console.error('Failed to load dashboard:', err);
     } finally {
@@ -73,11 +89,20 @@ export default function App() {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
+      showToast('Scraping latest live storefront prices & stock...');
+      const scrapeResult = await api.scrapeAllProducts(true);
       await loadDashboardData();
-      showToast('Dashboard synced with latest price data');
+
+      const newAlerts = scrapeResult.alertsTriggered || [];
+      if (newAlerts.length > 0) {
+        showToast(`🔔 ${newAlerts.length} new alert(s) detected!`);
+      } else {
+        showToast(`Synced ${scrapeResult.scrapedCount || 0} product(s) — all prices up to date`);
+      }
     } catch (err) {
       console.error('Refresh error:', err);
-      showToast('Failed to refresh data: ' + err.message);
+      await loadDashboardData().catch(() => {});
+      showToast('Failed to sync: ' + err.message);
     } finally {
       setIsRefreshing(false);
     }
@@ -170,6 +195,34 @@ export default function App() {
           {/* Sticky Note KPI Grid */}
           <StatsBar stats={stats} />
 
+          {/* Active Alerts Banner */}
+          {unreadAlertsCount > 0 && (
+            <div className="alerts-banner" onClick={() => setIsAlertsOpen(true)}>
+              <div className="alerts-banner-content">
+                <Bell size={18} className="alerts-banner-icon" />
+                <div>
+                  <div className="alerts-banner-title">
+                    {unreadAlertsCount} New Price & Inventory Alert{unreadAlertsCount > 1 ? 's' : ''} Detected!
+                  </div>
+                  <div className="alerts-banner-desc">
+                    {alerts.find(a => !a.is_read)?.title}: {alerts.find(a => !a.is_read)?.message}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsAlertsOpen(true);
+                }}
+                style={{ flexShrink: 0, fontWeight: 600 }}
+              >
+                Review Alerts ({unreadAlertsCount})
+              </button>
+            </div>
+          )}
+
           {/* Toolbar */}
           <div className="toolbar-section">
             <div className="toolbar-left">
@@ -227,6 +280,7 @@ export default function App() {
                   <ProductCard
                     key={product.product_id}
                     product={product}
+                    alert={alerts.find(a => a.product_id === product.product_id && !a.is_read)}
                     onSelect={(prod) => setSelectedProduct(prod)}
                     onScrapeNow={handleScrapeNow}
                     onDelete={handleDelete}
@@ -252,13 +306,23 @@ export default function App() {
                     {filteredProducts.map((product) => {
                       const hasPrice = product.current_price !== null && product.current_price !== undefined;
                       const isOutOfStock = product.current_stock === 0;
+                      const productAlert = alerts.find(a => a.product_id === product.product_id && !a.is_read);
                       return (
                         <tr key={product.product_id} onClick={() => setSelectedProduct(product)}>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span className="card-sku-tag mono">{product.sku}</span>
                               <div>
-                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.name}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.name}</span>
+                                  {productAlert && (
+                                    <span className="card-alert-badge" style={{ margin: 0, padding: '1px 5px', fontSize: '0.65rem' }}>
+                                      {productAlert.type === 'price_drop' && <TrendingDown size={10} />}
+                                      {productAlert.type === 'back_in_stock' && <CheckCircle size={10} />}
+                                      <span>{productAlert.title}</span>
+                                    </span>
+                                  )}
+                                </div>
                                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{product.brand}</div>
                               </div>
                             </div>

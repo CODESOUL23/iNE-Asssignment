@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRouter from './routes/api.js';
+import { scrapeAllDueProducts } from './scraper/scraperService.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -63,4 +64,17 @@ app.listen(PORT, () => {
   console.log(`API Base: http://localhost:${PORT}/api`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
   console.log(`========================================================`);
+
+  // Start background periodic scraping scheduler (checks every 60s for products due)
+  const SCHEDULER_INTERVAL_MS = 60 * 1000;
+  setInterval(async () => {
+    try {
+      const dueResult = await scrapeAllDueProducts({ force: false });
+      if (dueResult.scrapedCount > 0) {
+        console.log(`[Scheduler] Auto-scraped ${dueResult.scrapedCount} due product(s). New alerts: ${dueResult.alertsTriggered?.length || 0}`);
+      }
+    } catch (err) {
+      console.error('[Scheduler] Periodic scrape check failed:', err.message);
+    }
+  }, SCHEDULER_INTERVAL_MS);
 });

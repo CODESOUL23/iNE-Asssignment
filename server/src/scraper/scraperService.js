@@ -35,6 +35,7 @@ export async function scrapeProduct(productId, options = {}) {
   let quote = null;
   let attemptsUsed = 0;
   let httpStatus = null;
+  let triggeredAlert = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     attemptsUsed = attempt;
@@ -56,12 +57,15 @@ export async function scrapeProduct(productId, options = {}) {
       break;
     } catch (err) {
       lastError = err;
-      httpStatus = err.status || (err.message.includes('429') ? 429 : 500);
+      httpStatus = err.status || (err.message && err.message.includes('429') ? 429 : 500);
 
       if (attempt < maxRetries) {
-        // Exponential backoff with jitter
-        const jitter = Math.floor(Math.random() * 200);
-        const backoff = baseBackoffMs * Math.pow(2, attempt - 1) + jitter;
+        // Exponential backoff with jitter and special handling for 429 rate limit
+        const jitter = Math.floor(Math.random() * 250);
+        const is429 = httpStatus === 429 || (err.message && err.message.includes('429'));
+        const backoff = is429 
+          ? Math.max(1000 * attempt, baseBackoffMs * Math.pow(2, attempt - 1)) + jitter
+          : baseBackoffMs * Math.pow(2, attempt - 1) + jitter;
         console.warn(`[Scraper] Product #${pid} attempt ${attempt} failed (${err.message}). Retrying in ${backoff}ms...`);
         await sleep(backoff);
       }
@@ -117,9 +121,13 @@ export async function scrapeProduct(productId, options = {}) {
     // 3. If succeeded, fetch current tracked product to check for alerts & history
     const currentProduct = await db.getTrackedProductById(pid);
 
-    const oldPrice = currentProduct?.current_price ? Number(currentProduct.current_price) : null;
+    const oldPrice = (currentProduct && currentProduct.current_price !== null && currentProduct.current_price !== undefined)
+      ? Number(currentProduct.current_price)
+      : null;
     const newPrice = Number(quote.shown);
-    const oldStock = currentProduct?.current_stock !== undefined ? Number(currentProduct.current_stock) : null;
+    const oldStock = (currentProduct && currentProduct.current_stock !== null && currentProduct.current_stock !== undefined)
+      ? Number(currentProduct.current_stock)
+      : null;
     const newStock = Number(quote.stock || 0);
 
     // 4. Record Price History
@@ -146,34 +154,46 @@ export async function scrapeProduct(productId, options = {}) {
     if (oldPrice !== null && newPrice < oldPrice) {
       const diff = oldPrice - newPrice;
       const pct = Math.round((diff / oldPrice) * 100);
-      await db.addAlert({
-        productId: pid,
-        type: 'price_drop',
-        title: `Price dropped by ${pct}%!`,
-        message: `Price fell from ₹${oldPrice} to ₹${newPrice} (save ₹${diff})`,
-        oldValue: oldPrice,
-        newValue: newPrice
-      });
+      try {
+        triggeredAlert = await db.addAlert({
+          productId: pid,
+          type: 'price_drop',
+          title: `Price dropped by ${pct}%!`,
+          message: `Price fell from ₹${oldPrice.toLocaleString()} to ₹${newPrice.toLocaleString()} (save ₹${diff.toLocaleString()})`,
+          oldValue: oldPrice,
+          newValue: newPrice
+        });
+      } catch (alertErr) {
+        console.error(`Failed to add price_drop alert for #${pid}:`, alertErr.message);
+      }
     }
 
     if (oldStock !== null && oldStock === 0 && newStock > 0) {
-      await db.addAlert({
-        productId: pid,
-        type: 'back_in_stock',
-        title: 'Back in Stock!',
-        message: `Item is back in stock with ${newStock} units available.`,
-        oldValue: oldStock,
-        newValue: newStock
-      });
+      try {
+        triggeredAlert = await db.addAlert({
+          productId: pid,
+          type: 'back_in_stock',
+          title: 'Back in Stock!',
+          message: `Item is back in stock with ${newStock} units available.`,
+          oldValue: oldStock,
+          newValue: newStock
+        });
+      } catch (alertErr) {
+        console.error(`Failed to add back_in_stock alert for #${pid}:`, alertErr.message);
+      }
     } else if (oldStock !== null && oldStock > 0 && newStock === 0) {
-      await db.addAlert({
-        productId: pid,
-        type: 'out_of_stock',
-        title: 'Item Sold Out',
-        message: 'Product is now currently out of stock.',
-        oldValue: oldStock,
-        newValue: newStock
-      });
+      try {
+        triggeredAlert = await db.addAlert({
+          productId: pid,
+          type: 'out_of_stock',
+          title: 'Item Sold Out',
+          message: 'Product is now currently out of stock.',
+          oldValue: oldStock,
+          newValue: newStock
+        });
+      } catch (alertErr) {
+        console.error(`Failed to add out_of_stock alert for #${pid}:`, alertErr.message);
+      }
     }
   }
 
@@ -183,7 +203,8 @@ export async function scrapeProduct(productId, options = {}) {
     status,
     attempts: attemptsUsed,
     quote,
-    durationMs: totalDurationMs
+    durationMs: totalDurationMs,
+    alert: triggeredAlert
   };
 }
 
@@ -212,13 +233,16 @@ export async function scrapeAllDueProducts(options = {}) {
     } catch (err) {
       results.push({ success: false, productId: product.product_id, error: err.message });
     }
-    // Pause 300ms between products to be polite to store server
-    await sleep(300);
+    // Pause 750ms between products to be polite to store server and prevent 429 rate limits
+    await sleep(750);
   }
+
+  const alertsTriggered = results.filter(r => r.alert).map(r => r.alert);
 
   return {
     totalTracked: products.length,
     scrapedCount: dueProducts.length,
+    alertsTriggered,
     results
   };
 }

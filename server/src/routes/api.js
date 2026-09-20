@@ -288,6 +288,29 @@ router.post('/products/:productId/scrape', async (req, res) => {
   }
 });
 
+// Trigger a scrape of all tracked products (or all due products)
+router.post('/products/scrape-all', async (req, res) => {
+  try {
+    const force = req.query.force !== 'false';
+    console.log(`[Batch Scrape] Starting sync of tracked products (force=${force})...`);
+    const results = await scrapeAllDueProducts({ force });
+    
+    // Fetch latest fresh alerts
+    const alerts = await db.getAlerts(15);
+    const unreadAlerts = alerts.filter(a => !a.is_read);
+
+    res.json({
+      success: true,
+      ...results,
+      unreadAlertsCount: unreadAlerts.length,
+      alerts
+    });
+  } catch (err) {
+    console.error('[Batch Scrape] Failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // -----------------------------------------------------------------------------
 // Alerts & Notifications
 // -----------------------------------------------------------------------------

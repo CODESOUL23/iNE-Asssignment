@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { RefreshCw, Trash2, ExternalLink, Clock, BarChart3 } from 'lucide-react';
+import { RefreshCw, Trash2, ExternalLink, Clock, BarChart3, TrendingDown, CheckCircle } from 'lucide-react';
 
-export function ProductCard({ product, onSelect, onScrapeNow, onDelete, onUpdateFreq }) {
+export function ProductCard({ product, alert, onSelect, onScrapeNow, onDelete, onUpdateFreq }) {
   const [isScraping, setIsScraping] = useState(false);
 
   const handleScrape = async (e) => {
@@ -69,6 +69,14 @@ export function ProductCard({ product, onSelect, onScrapeNow, onDelete, onUpdate
 
         <h3 className="card-title-text">{product.name}</h3>
         <p className="card-brand-text">{product.brand}</p>
+
+        {alert && (
+          <div className="card-alert-badge" title={alert.message}>
+            {alert.type === 'price_drop' && <TrendingDown size={11} />}
+            {alert.type === 'back_in_stock' && <CheckCircle size={11} />}
+            <span>{alert.title}</span>
+          </div>
+        )}
 
         {/* Price & Stock */}
         <div className="price-metric-box">
