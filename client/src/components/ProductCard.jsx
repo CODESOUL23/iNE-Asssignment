@@ -40,29 +40,29 @@ export function ProductCard({ product, alert, onSelect, onScrapeNow, onDelete, o
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{product.category}</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '3px' }}>
+          <div className="card-header-actions">
             <a
               href={`https://demo.inelabteamdev.com/product/${product.product_id}`}
               target="_blank"
               rel="noreferrer"
-              className="btn btn-ghost btn-icon btn-sm"
+              className="card-action-btn btn-storefront"
               onClick={(e) => e.stopPropagation()}
               title="View on storefront"
-              style={{ width: '26px', height: '26px' }}
+              aria-label="View on storefront"
             >
-              <ExternalLink size={12} />
+              <ExternalLink size={15} />
             </a>
             <button
               type="button"
-              className="btn btn-ghost btn-icon btn-sm"
+              className="card-action-btn btn-delete"
               onClick={(e) => {
                 e.stopPropagation();
                 if (confirm(`Remove "${product.name}"?`)) onDelete(product.product_id);
               }}
               title="Stop tracking"
-              style={{ width: '26px', height: '26px', color: 'var(--text-muted)' }}
+              aria-label="Stop tracking"
             >
-              <Trash2 size={12} />
+              <Trash2 size={15} />
             </button>
           </div>
         </div>
