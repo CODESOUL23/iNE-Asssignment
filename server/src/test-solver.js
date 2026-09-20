@@ -1,17 +1,19 @@
-import { solveChallengeAndFetchPrice } from './scraper/lightweightSolver.js';
+import { scrapeProduct } from './scraper/scraperService.js';
 
-console.log('Testing Lightweight Challenge Solver against mock store...');
+console.log('Testing Lightweight Challenge Solver & Resilient Scraper...');
 
 async function runTest() {
-  try {
-    const testId = 366;
-    console.log(`Starting test for Product #${testId}...`);
-    const result = await solveChallengeAndFetchPrice(testId);
-    console.log('✅ Lightweight Solver Passed!');
+  const testId = 366;
+  console.log(`Starting resilient scrape test for Product #${testId}...`);
+  const result = await scrapeProduct(testId, { engine: 'lightweight', maxRetries: 3, skipDb: true });
+  if (result.success) {
+    console.log('[SUCCESS] Resilient Scraper Succeeded!');
+    console.log(`Attempts used: ${result.attempts}`);
+    console.log(`Outcome Status: ${result.status}`);
     console.log('Quote:', result.quote);
-    console.log('Latency:', result.responseTimeMs + 'ms');
-  } catch (err) {
-    console.error('❌ Lightweight Solver Failed:', err);
+    console.log(`Latency: ${result.durationMs}ms`);
+  } else {
+    console.error('[ERROR] Scraper Failed after retries:', result.error);
     process.exit(1);
   }
 }

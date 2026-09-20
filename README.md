@@ -6,19 +6,18 @@
 
 ---
 
-## 🌟 Live Demo & Links
+## Live Demo & Links
 
 - **Hosted Web App (Vercel)**: `https://ine-price-tracker.vercel.app` *(Replace with your deployed URL)*
-- **Hosted API Backend (Render)**: `https://ine-price-tracker-api.onrender.com` *(Replace with your deployed URL)*
-- **GitHub Repository**: `https://github.com/your-username/ine-price-tracker` *(Replace with your repository URL)*
+- **GitHub Repository**: `https://github.com/CODESOUL23/iNE-Asssignment`
 - **Headed Run Screen Recording**: Included in repository root / YouTube / Loom link *(2–4 minutes demonstration)*
 
 ---
 
-## 🚀 Key Features & Highlights
+## Key Features & Highlights
 
 1. **Dual-Engine Scraping Architecture**:
-   - **Production Lightweight Engine**: Reverse-engineered cryptographic challenge solver (WASM + Proof-of-Work nonce search + synthetic attestation + XOR decryptor) running in pure Node.js in **<150ms** with **<45MB RAM**. Perfect for Render's 512MB free-tier without sleeping or OOM crashes.
+   - **Production Lightweight Engine**: Reverse-engineered cryptographic challenge solver (WASM + Proof-of-Work nonce search + synthetic attestation + XOR decryptor) running in pure Node.js in **<150ms** with **<45MB RAM**. Optimized for Render's 512MB free-tier without sleeping or OOM crashes.
    - **Observable Headed Playwright Engine**: Visual runner with smooth mouse movements satisfying dwell criteria (`minMoves: 8`, `minDwellMs: 600`), handling synthetic click drops (`Xn`), and observing spinner transitions on screen.
 2. **Scheduled Scraping & Free-Tier Resilience**:
    - Free-tier Render instances sleep when idle. Scrapes are triggered via an external webhook (`POST /api/cron/scrape`) on `cron-job.org` every 2 hours, waking the container and ensuring reliable unattended execution.
@@ -33,7 +32,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: React 19, Vite, Lucide Icons, Custom Design Tokens & Vanilla CSS (Dark/Light responsive)
 - **Backend**: Node.js (v20+), Express, `@supabase/supabase-js`, `dotenv`, `cors`, `playwright`
@@ -42,7 +41,7 @@
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
 
 ### Backend (`server/.env`)
 | Variable | Description | Example |
@@ -61,7 +60,7 @@
 
 ---
 
-## 📦 Setup & Local Installation
+## Setup & Local Installation
 
 ### Prerequisites
 - Node.js version 20 or later
@@ -69,15 +68,15 @@
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/ine-price-tracker.git
-cd ine-price-tracker
+git clone https://github.com/CODESOUL23/iNE-Asssignment.git
+cd iNE-Asssignment
 ```
 
 ### 2. Configure Database (Supabase)
 1. Create a free project at [supabase.com](https://supabase.com).
 2. Open the **SQL Editor** in Supabase and run the script located at `docs/schema.sql`.
 3. Copy your **Project URL** and **anon public key** from *Settings -> API*.
-4. *(Optional)* If you do not have Supabase credentials yet, leave them blank in `server/.env`. The backend will automatically use its built-in persistent local storage!
+4. *(Optional)* If you do not have Supabase credentials yet, leave them blank in `server/.env`. The backend will automatically use its built-in persistent local storage.
 
 ### 3. Setup and Run Backend
 ```bash
@@ -102,26 +101,26 @@ npm run dev
 
 ---
 
-## 🎥 Observable (Headed) Run Demonstration
+## Observable (Headed) Run Demonstration
 
 The assessment requires an observable run where the browser's behavior can be watched:
 
 ```bash
 cd server
-npm run headed -- --id 366 --slowmo 120
+npm run headed -- --id 767 --slowmo 150
 ```
 
 ### What this demonstrates:
 1. Launches visible Chromium.
-2. Navigates to `https://demo.inelabteamdev.com/product/366`.
+2. Navigates to `https://demo.inelabteamdev.com/product/767`.
 3. Simulates human mouse movement into the `.price-block` to satisfy `minMoves: 8`.
 4. Dwells for >600ms until "Reveal price" unlocks.
 5. Clicks the button, intercepts synthetic drops (`Xn`), observes the spinner, and extracts the revealed price and stock.
-6. Synchronizes the result into the database and prints rich colored logs to the terminal.
+6. Synchronizes the result into the database and prints structured logs to the terminal.
 
 ---
 
-## ⏰ Scraping Schedule Configuration (cron-job.org)
+## Scraping Schedule Configuration (cron-job.org)
 
 Because Render free instances sleep after 15 minutes of inactivity:
 1. Register a free account on [cron-job.org](https://cron-job.org).
@@ -136,7 +135,7 @@ Because Render free instances sleep after 15 minutes of inactivity:
 
 ---
 
-## 🧪 Verification & Automated Testing
+## Verification & Automated Testing
 
 - **Solver Verification**: `cd server && npm run test-solver`
 - **Frontend Build**: `cd client && npm run build`
@@ -144,7 +143,7 @@ Because Render free instances sleep after 15 minutes of inactivity:
 
 ---
 
-## 📄 Submission Checklist
+## Submission Checklist
 
 - [x] Live Hosted URL (Vercel Frontend + Render Backend)
 - [x] Public GitHub Repository

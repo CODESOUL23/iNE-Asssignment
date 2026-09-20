@@ -430,9 +430,13 @@ body::after {
 }
 
 .btn-icon {
-  width: 34px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-sm {

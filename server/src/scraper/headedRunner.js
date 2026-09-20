@@ -25,7 +25,7 @@ export async function runHeadedScraper(productId, options = {}) {
   let browser = null;
 
   try {
-    logger(`🚀 Launching Chromium browser (headed: ${!headless})...`);
+    logger(`[INIT] Launching Chromium browser (headed: ${!headless})...`);
     browser = await chromium.launch({
       headless,
       slowMo,
@@ -46,32 +46,32 @@ export async function runHeadedScraper(productId, options = {}) {
     page.on('response', response => {
       const url = response.url();
       if (url.includes('/api/challenge')) {
-        logger(`📡 Network: /api/challenge -> Status ${response.status()}`);
+        logger(`[NETWORK] /api/challenge -> Status ${response.status()}`);
       } else if (url.includes('/api/session')) {
-        logger(`📡 Network: /api/session -> Status ${response.status()}`);
+        logger(`[NETWORK] /api/session -> Status ${response.status()}`);
       } else if (url.includes('/price')) {
-        logger(`📡 Network: Price endpoint -> Status ${response.status()}`);
+        logger(`[NETWORK] Price endpoint -> Status ${response.status()}`);
       }
     });
 
     const productUrl = `${storeUrl}/product/${productId}`;
-    logger(`🧭 Navigating to product page: ${productUrl}`);
+    logger(`[NAVIGATE] Navigating to product page: ${productUrl}`);
     await page.goto(productUrl, { waitUntil: 'domcontentloaded', timeout });
 
-    // Wait for product details to render
-    await page.waitForSelector('.detail-info', { timeout: 10000 });
+    // Wait for product details to render (allow up to 20s for store latency)
+    await page.waitForSelector('.detail-info', { timeout: 20000 });
     const productName = await page.$eval('.tile-name, h1, .detail-info h1', el => el.textContent.trim()).catch(() => `Product #${productId}`);
-    logger(`📦 Found Product: "${productName}"`);
+    logger(`[FOUND] Product: "${productName}"`);
 
     // Locate price block
-    const priceBlock = await page.waitForSelector('.price-block', { timeout: 10000 });
+    const priceBlock = await page.waitForSelector('.price-block', { timeout: 15000 });
     const box = await priceBlock.boundingBox();
 
     if (!box) {
       throw new Error('Price block bounding box could not be determined');
     }
 
-    logger(`🖱️ Simulating human mouse movements over price area to satisfy dwell requirements...`);
+    logger(`[ACTION] Simulating human mouse movements over price area to satisfy dwell requirements...`);
     // Move mouse through 10 intermediate points to satisfy minMoves: 8
     const startX = box.x - 100;
     const startY = box.y - 50;
@@ -87,33 +87,33 @@ export async function runHeadedScraper(productId, options = {}) {
     }
 
     // Dwell inside price block for at least 800ms (threshold is 600ms)
-    logger(`⏳ Holding hover on price block for dwell verification (>600ms)...`);
+    logger(`[ACTION] Holding hover on price block for dwell verification (>600ms)...`);
     await page.waitForTimeout(850);
 
     // Wait for "Reveal price" button to become enabled
     const revealBtn = await page.waitForSelector('.price-block button:not([disabled])', { timeout: 5000 });
-    logger(`🎯 "Reveal price" button is enabled. Clicking...`);
+    logger(`[ACTION] "Reveal price" button is enabled. Clicking...`);
     
     // Click with retry for synthetic click-drop (Xn has 35% chance to drop or delay)
     let clicked = false;
     for (let clickAttempt = 1; clickAttempt <= 3; clickAttempt++) {
       await revealBtn.click();
-      logger(`👉 Clicked "Reveal price" (attempt ${clickAttempt})`);
+      logger(`[ACTION] Clicked "Reveal price" (attempt ${clickAttempt})`);
 
       // Check if spinner or loading phase appeared
       try {
         await page.waitForSelector('.spinner, .price-block[aria-busy="true"]', { timeout: 1200 });
-        logger(`🔄 Spinner detected! Challenge execution in progress...`);
+        logger(`[STATUS] Spinner detected: Challenge execution in progress...`);
         clicked = true;
         break;
       } catch {
-        logger(`⚠️ Click may have been synthetically dropped by store flakiness logic. Retrying click...`);
+        logger(`[WARNING] Click may have been synthetically delayed by store logic. Retrying click...`);
         await page.waitForTimeout(500);
       }
     }
 
     // Wait for final price to be revealed (or retry error message)
-    logger(`⏳ Awaiting challenge resolution and DOM update...`);
+    logger(`[STATUS] Awaiting challenge resolution and DOM update...`);
     
     // The price block will change from loading spinner to the actual price display
     // Wait until .spinner disappears and price is shown
@@ -126,11 +126,11 @@ export async function runHeadedScraper(productId, options = {}) {
     }, { timeout: 20000 });
 
     const priceBlockText = await page.$eval('.price-block', el => el.textContent.trim());
-    logger(`📄 Price block content updated: "${priceBlockText}"`);
+    logger(`[UPDATE] Price block content updated: "${priceBlockText}"`);
 
     // If an error occurred on the store side, check for retry button
     if (priceBlockText.includes("Couldn't load price") || priceBlockText.includes("failed")) {
-      logger(`⚠️ Store returned simulated failure. Clicking in-page retry...`);
+      logger(`[WARNING] Store returned simulated failure. Clicking in-page retry...`);
       const retryBtn = await page.$('.price-block button');
       if (retryBtn) {
         await retryBtn.click();
@@ -170,7 +170,7 @@ export async function runHeadedScraper(productId, options = {}) {
       };
     });
 
-    logger(`✅ Observable Scrape Success! Extracted: Price = ₹${extractedData?.price}, Stock = ${extractedData?.stock}`);
+    logger(`[SUCCESS] Observable Scrape Success! Extracted: Price = ₹${extractedData?.price}, Stock = ${extractedData?.stock}`);
     
     // Keep browser open momentarily so the viewer/recording sees the final state
     await page.waitForTimeout(1500);
@@ -189,12 +189,12 @@ export async function runHeadedScraper(productId, options = {}) {
     };
 
   } catch (err) {
-    logger(`❌ Headed Scraper encountered an error: ${err.message}`);
+    logger(`[ERROR] Headed Scraper encountered an error: ${err.message}`);
     throw err;
   } finally {
     if (browser) {
       await browser.close();
-      logger(`🔒 Closed Chromium browser.`);
+      logger(`[CLEANUP] Closed Chromium browser.`);
     }
   }
 }

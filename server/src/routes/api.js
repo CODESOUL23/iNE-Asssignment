@@ -1,7 +1,14 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { db } from '../config/db.js';
 import { scrapeProduct, scrapeAllDueProducts } from '../scraper/scraperService.js';
 import { detectStoreChanges } from '../scraper/changeDetector.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const CACHE_FILE = path.resolve(__dirname, '../../data/catalog_cache.json');
 
 const router = express.Router();
 const STORE_URL = process.env.MOCK_STORE_URL || 'https://demo.inelabteamdev.com';
@@ -13,52 +20,123 @@ let lastCatalogFetch = 0;
 
 async function getFullCatalog() {
   const now = Date.now();
-  if (catalogCache && now - lastCatalogFetch < 1000 * 60 * 15) {
+  if (catalogCache && catalogCache.length > 0 && now - lastCatalogFetch < 1000 * 60 * 60 * 12) {
     return catalogCache;
   }
 
+  // Check file cache first
   try {
-    const allItems = [];
-    // The store has 1,000 items in chunks of up to 60
-    for (let page = 1; page <= 20; page++) {
-      const res = await fetch(`${STORE_URL}/api/catalog?page=${page}&pageSize=50`);
-      if (!res.ok) break;
-      const data = await res.json();
-      if (data.items && data.items.length > 0) {
-        allItems.push(...data.items);
+    if (fs.existsSync(CACHE_FILE)) {
+      const cachedData = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
+      if (Array.isArray(cachedData) && cachedData.length > 0) {
+        catalogCache = cachedData;
+        lastCatalogFetch = now;
+        return catalogCache;
       }
-      if (data.items.length < 50 || allItems.length >= (data.total || 1000)) break;
     }
-    catalogCache = allItems;
-    lastCatalogFetch = now;
-    return allItems;
+  } catch (err) {
+    console.warn('[Catalog] Error reading cache file:', err.message);
+  }
+
+  try {
+    // 1,000 items in 17 pages of 60 items - fetch concurrently in ~500ms
+    const pageNumbers = Array.from({ length: 17 }, (_, i) => i + 1);
+    const pageResponses = await Promise.all(
+      pageNumbers.map(async (page) => {
+        try {
+          const res = await fetch(`${STORE_URL}/api/catalog?page=${page}&pageSize=60`);
+          if (!res.ok) return [];
+          const data = await res.json();
+          return data.items || [];
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    const allItems = pageResponses.flat();
+    if (allItems.length > 0) {
+      catalogCache = allItems;
+      lastCatalogFetch = now;
+
+      // Save to disk cache
+      try {
+        const dir = path.dirname(CACHE_FILE);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(allItems), 'utf-8');
+      } catch (saveErr) {
+        console.warn('[Catalog] Failed to write cache file:', saveErr.message);
+      }
+      return allItems;
+    }
+
+    return catalogCache || [];
   } catch (err) {
     console.warn('Catalog fetch error:', err.message);
     return catalogCache || [];
   }
 }
 
+// Warm up the catalog cache immediately on module load
+getFullCatalog().catch(err => console.warn('[Catalog Warmup Error]:', err.message));
+
 // -----------------------------------------------------------------------------
 // Catalog & Search Routes
 // -----------------------------------------------------------------------------
 
-// Search products by full or partial name, brand, or SKU
+// Search products by full or partial name, brand, SKU, ID, or pasted URL
 router.get('/catalog/search', async (req, res) => {
   try {
-    const query = (req.query.q || '').trim().toLowerCase();
+    let rawQuery = (req.query.q || '').trim();
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const pageSize = Math.min(50, Math.max(1, parseInt(req.query.pageSize) || 12));
+
+    // Support pasted URLs like https://demo.inelabteamdev.com/product/summit-ar-glasses-neo-980
+    let urlExtractedId = null;
+    let urlExtractedSlug = null;
+    const urlMatch = rawQuery.match(/\/product\/([a-zA-Z0-9_-]+)/);
+    if (urlMatch) {
+      const fullSlug = urlMatch[1];
+      const idMatch = fullSlug.match(/-(\d+)$/);
+      if (idMatch) {
+        urlExtractedId = parseInt(idMatch[1]);
+      }
+      urlExtractedSlug = fullSlug.toLowerCase();
+    }
+
+    const query = rawQuery.toLowerCase();
+    const numericQuery = parseInt(rawQuery, 10);
+    const isNumberQuery = !isNaN(numericQuery);
 
     const catalog = await getFullCatalog();
     let filtered = catalog;
 
-    if (query) {
-      filtered = catalog.filter(item => 
-        (item.name && item.name.toLowerCase().includes(query)) ||
-        (item.brand && item.brand.toLowerCase().includes(query)) ||
-        (item.sku && item.sku.toLowerCase().includes(query)) ||
-        (item.category && item.category.toLowerCase().includes(query))
-      );
+    if (rawQuery) {
+      filtered = catalog.filter(item => {
+        if (!item) return false;
+
+        // If URL matched
+        if (urlExtractedId && item.id === urlExtractedId) return true;
+        if (urlExtractedSlug && item.slug && item.slug.toLowerCase().includes(urlExtractedSlug)) return true;
+
+        // Numeric match against ID or SKU number
+        if (isNumberQuery && item.id === numericQuery) return true;
+
+        // String matches
+        const name = (item.name || '').toLowerCase();
+        const brand = (item.brand || '').toLowerCase();
+        const sku = (item.sku || '').toLowerCase();
+        const category = (item.category || '').toLowerCase();
+        const slug = (item.slug || '').toLowerCase();
+
+        return (
+          name.includes(query) ||
+          brand.includes(query) ||
+          sku.includes(query) ||
+          category.includes(query) ||
+          slug.includes(query)
+        );
+      });
     }
 
     const total = filtered.length;
@@ -125,12 +203,18 @@ router.post('/products/track', async (req, res) => {
       frequency_hours: frequency_hours || 2
     });
 
-    // Trigger an immediate background scrape so price & stock are populated immediately
-    scrapeProduct(product_id, { engine: 'lightweight' }).catch(err => {
-      console.warn(`[Auto-Scrape] Initial scrape for #${product_id} had issue:`, err.message);
-    });
+    // Trigger an immediate scrape so price & stock are populated immediately
+    try {
+      await Promise.race([
+        scrapeProduct(product_id, { engine: 'lightweight' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Initial scrape timed out')), 3500))
+      ]);
+    } catch (scrapeErr) {
+      console.warn(`[Auto-Scrape] Initial scrape for #${product_id} continuing in background:`, scrapeErr.message);
+    }
 
-    res.status(201).json(tracked);
+    const fresh = await db.getTrackedProductById(product_id);
+    res.status(201).json(fresh || tracked);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

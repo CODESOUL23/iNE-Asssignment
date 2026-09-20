@@ -24,7 +24,8 @@ export async function scrapeProduct(productId, options = {}) {
     engine = 'lightweight',
     maxRetries = 3,
     baseBackoffMs = 500,
-    storeUrl = DEFAULT_STORE_URL
+    storeUrl = DEFAULT_STORE_URL,
+    skipDb = false
   } = options;
 
   const pid = Number(productId);
@@ -75,29 +76,33 @@ export async function scrapeProduct(productId, options = {}) {
     status = attemptsUsed === 1 ? 'success' : 'retried';
   }
 
-  // 1. Always record honest scrape log (required by rubric)
-  try {
-    await db.addScrapeLog({
-      productId: pid,
-      engine,
-      status,
-      attempts: attemptsUsed,
-      responseTimeMs: totalDurationMs,
-      httpStatus: quote ? 200 : httpStatus,
-      errorMessage: quote ? null : (lastError?.message || 'Scrape failed'),
-      rawQuote: quote || null
-    });
-  } catch (logErr) {
-    console.error(`Failed to write scrape log for product #${pid}:`, logErr);
+  // 1. Record honest scrape log (required by rubric)
+  if (!skipDb) {
+    try {
+      await db.addScrapeLog({
+        productId: pid,
+        engine,
+        status,
+        attempts: attemptsUsed,
+        responseTimeMs: totalDurationMs,
+        httpStatus: quote ? 200 : httpStatus,
+        errorMessage: quote ? null : (lastError?.message || 'Scrape failed'),
+        rawQuote: quote || null
+      });
+    } catch (logErr) {
+      console.error(`Failed to write scrape log for product #${pid}:`, logErr);
+    }
   }
 
   // 2. If failed, do NOT write corrupt/empty data to tracked products or history
   if (!quote) {
-    // Optionally update tracked product error status without modifying historical price
-    await db.updateTrackedProduct(pid, {
-      status: 'error',
-      last_scraped_at: new Date().toISOString()
-    }).catch(() => {});
+    if (!skipDb) {
+      // Optionally update tracked product error status without modifying historical price
+      await db.updateTrackedProduct(pid, {
+        status: 'error',
+        last_scraped_at: new Date().toISOString()
+      }).catch(() => {});
+    }
 
     return {
       success: false,
@@ -108,66 +113,68 @@ export async function scrapeProduct(productId, options = {}) {
     };
   }
 
-  // 3. If succeeded, fetch current tracked product to check for alerts & history
-  const currentProduct = await db.getTrackedProductById(pid);
+  if (!skipDb) {
+    // 3. If succeeded, fetch current tracked product to check for alerts & history
+    const currentProduct = await db.getTrackedProductById(pid);
 
-  const oldPrice = currentProduct?.current_price ? Number(currentProduct.current_price) : null;
-  const newPrice = Number(quote.shown);
-  const oldStock = currentProduct?.current_stock !== undefined ? Number(currentProduct.current_stock) : null;
-  const newStock = Number(quote.stock || 0);
+    const oldPrice = currentProduct?.current_price ? Number(currentProduct.current_price) : null;
+    const newPrice = Number(quote.shown);
+    const oldStock = currentProduct?.current_stock !== undefined ? Number(currentProduct.current_stock) : null;
+    const newStock = Number(quote.stock || 0);
 
-  // 4. Record Price History
-  await db.addPriceHistory({
-    productId: pid,
-    price: newPrice,
-    mrp: quote.mrp ? Number(quote.mrp) : null,
-    stock: newStock,
-    currency: quote.currency || 'INR',
-    capturedAt: new Date().toISOString()
-  });
-
-  // 5. Update Tracked Product
-  await db.updateTrackedProduct(pid, {
-    current_price: newPrice,
-    mrp: quote.mrp ? Number(quote.mrp) : null,
-    current_stock: newStock,
-    currency: quote.currency || 'INR',
-    status: 'active',
-    last_scraped_at: new Date().toISOString()
-  });
-
-  // 6. Check for Alerts (Bonus Feature)
-  if (oldPrice !== null && newPrice < oldPrice) {
-    const diff = oldPrice - newPrice;
-    const pct = Math.round((diff / oldPrice) * 100);
-    await db.addAlert({
+    // 4. Record Price History
+    await db.addPriceHistory({
       productId: pid,
-      type: 'price_drop',
-      title: `Price dropped by ${pct}%!`,
-      message: `Price fell from ₹${oldPrice} to ₹${newPrice} (save ₹${diff})`,
-      oldValue: oldPrice,
-      newValue: newPrice
+      price: newPrice,
+      mrp: quote.mrp ? Number(quote.mrp) : null,
+      stock: newStock,
+      currency: quote.currency || 'INR',
+      capturedAt: new Date().toISOString()
     });
-  }
 
-  if (oldStock !== null && oldStock === 0 && newStock > 0) {
-    await db.addAlert({
-      productId: pid,
-      type: 'back_in_stock',
-      title: 'Back in Stock!',
-      message: `Item is back in stock with ${newStock} units available.`,
-      oldValue: oldStock,
-      newValue: newStock
+    // 5. Update Tracked Product
+    await db.updateTrackedProduct(pid, {
+      current_price: newPrice,
+      mrp: quote.mrp ? Number(quote.mrp) : null,
+      current_stock: newStock,
+      currency: quote.currency || 'INR',
+      status: 'active',
+      last_scraped_at: new Date().toISOString()
     });
-  } else if (oldStock !== null && oldStock > 0 && newStock === 0) {
-    await db.addAlert({
-      productId: pid,
-      type: 'out_of_stock',
-      title: 'Item Sold Out',
-      message: 'Product is now currently out of stock.',
-      oldValue: oldStock,
-      newValue: newStock
-    });
+
+    // 6. Check for Alerts (Bonus Feature)
+    if (oldPrice !== null && newPrice < oldPrice) {
+      const diff = oldPrice - newPrice;
+      const pct = Math.round((diff / oldPrice) * 100);
+      await db.addAlert({
+        productId: pid,
+        type: 'price_drop',
+        title: `Price dropped by ${pct}%!`,
+        message: `Price fell from ₹${oldPrice} to ₹${newPrice} (save ₹${diff})`,
+        oldValue: oldPrice,
+        newValue: newPrice
+      });
+    }
+
+    if (oldStock !== null && oldStock === 0 && newStock > 0) {
+      await db.addAlert({
+        productId: pid,
+        type: 'back_in_stock',
+        title: 'Back in Stock!',
+        message: `Item is back in stock with ${newStock} units available.`,
+        oldValue: oldStock,
+        newValue: newStock
+      });
+    } else if (oldStock !== null && oldStock > 0 && newStock === 0) {
+      await db.addAlert({
+        productId: pid,
+        type: 'out_of_stock',
+        title: 'Item Sold Out',
+        message: 'Product is now currently out of stock.',
+        oldValue: oldStock,
+        newValue: newStock
+      });
+    }
   }
 
   return {

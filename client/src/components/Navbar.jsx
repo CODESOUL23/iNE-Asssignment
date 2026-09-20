@@ -1,7 +1,14 @@
 import React from 'react';
 import { Bell, ShieldCheck, RefreshCw } from 'lucide-react';
 
-export function Navbar({ onOpenSearch, onOpenAlerts, onOpenHealth, unreadAlertsCount = 0, onRefresh }) {
+export function Navbar({
+  onOpenSearch,
+  onOpenAlerts,
+  onOpenHealth,
+  unreadAlertsCount = 0,
+  onRefresh,
+  isRefreshing = false
+}) {
   return (
     <header className="topbar">
       <div className="topbar-left">
@@ -15,18 +22,20 @@ export function Navbar({ onOpenSearch, onOpenAlerts, onOpenHealth, unreadAlertsC
       <div className="topbar-actions">
         <button
           type="button"
-          className="btn btn-ghost btn-sm"
+          className="btn btn-secondary"
           onClick={onOpenSearch}
-          style={{ gap: '4px', color: 'var(--text-muted)' }}
+          style={{ gap: '6px', color: 'var(--text-secondary)', height: '36px', padding: '0 12px' }}
+          title="Search or track product (⌘K)"
         >
-          <span style={{ fontSize: '0.78rem' }}>Search</span>
+          <span style={{ fontSize: '0.82rem' }}>Search</span>
           <kbd style={{
             background: '#eee8dc',
             border: '1px solid var(--border-light)',
-            borderRadius: '2px',
-            padding: '1px 5px',
-            fontSize: '0.66rem',
+            borderRadius: '3px',
+            padding: '2px 6px',
+            fontSize: '0.68rem',
             color: 'var(--text-muted)',
+            fontFamily: 'var(--font-mono)'
           }}>
             ⌘K
           </kbd>
@@ -34,31 +43,46 @@ export function Navbar({ onOpenSearch, onOpenAlerts, onOpenHealth, unreadAlertsC
 
         <button
           type="button"
-          className="btn btn-ghost btn-icon btn-sm"
+          className="btn btn-secondary btn-icon"
           onClick={onOpenHealth}
-          title="Health diagnostics"
+          title="System Health & Diagnostics"
+          style={{ width: '36px', height: '36px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <ShieldCheck size={16} />
+          <ShieldCheck size={19} />
         </button>
 
         <button
           type="button"
-          className="btn btn-ghost btn-icon btn-sm"
+          className="btn btn-secondary btn-icon"
           onClick={onOpenAlerts}
-          title="Alerts"
-          style={{ position: 'relative' }}
+          title={`Alerts (${unreadAlertsCount} unread)`}
+          style={{ position: 'relative', width: '36px', height: '36px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <Bell size={16} />
-          {unreadAlertsCount > 0 && <span className="notification-badge-dot" />}
+          <Bell size={19} />
+          {unreadAlertsCount > 0 && (
+            <span
+              className="notification-badge-dot"
+              style={{
+                top: '6px',
+                right: '6px',
+                width: '8px',
+                height: '8px',
+                boxShadow: '0 0 0 2px var(--bg-white)'
+              }}
+            />
+          )}
         </button>
 
         <button
           type="button"
-          className="btn btn-secondary btn-sm"
+          className="btn btn-secondary"
           onClick={onRefresh}
-          title="Refresh data"
+          disabled={isRefreshing}
+          title="Refresh dashboard data"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 14px' }}
         >
-          <RefreshCw size={13} />
+          <RefreshCw size={14} className={isRefreshing ? 'spin' : ''} />
+          <span style={{ fontSize: '0.82rem' }}>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
         </button>
       </div>
     </header>

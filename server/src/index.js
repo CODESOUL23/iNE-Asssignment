@@ -59,8 +59,8 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`========================================================`);
-  console.log(`🚀 INE Price Tracker Server running on port ${PORT}`);
-  console.log(`🔗 API Base: http://localhost:${PORT}/api`);
-  console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
+  console.log(`INE Price Tracker Server running on port ${PORT}`);
+  console.log(`API Base: http://localhost:${PORT}/api`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
   console.log(`========================================================`);
 });

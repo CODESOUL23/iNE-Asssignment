@@ -73,6 +73,7 @@ export function Sidebar({
           type="button"
           className="sidebar-nav-item"
           onClick={onOpenSearch}
+          title="Track a new product"
         >
           <Plus size={15} />
           <span>Track New Product</span>

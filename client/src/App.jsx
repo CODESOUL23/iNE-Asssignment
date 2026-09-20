@@ -8,13 +8,15 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { AlertsModal } from './components/AlertsModal';
 import { HealthModal } from './components/HealthModal';
 import { api } from './services/api';
-import { Plus, RefreshCw, LayoutGrid, Table, Trash2, BarChart3 } from 'lucide-react';
+import { Plus, RefreshCw, LayoutGrid, Table, Trash2, BarChart3, Check } from 'lucide-react';
 
 export default function App() {
   const [trackedProducts, setTrackedProducts] = useState([]);
   const [stats, setStats] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [toast, setToast] = useState(null);
   const [filterQuery, setFilterQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [viewMode, setViewMode] = useState('grid');
@@ -60,9 +62,31 @@ export default function App() {
     }
   };
 
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => {
+      setToast(prev => (prev === message ? null : prev));
+    }, 3200);
+  };
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await loadDashboardData();
+      showToast('Dashboard synced with latest price data');
+    } catch (err) {
+      console.error('Refresh error:', err);
+      showToast('Failed to refresh data: ' + err.message);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleScrapeNow = async (productId) => {
     await api.triggerScrape(productId, 'lightweight');
     await loadDashboardData();
+    showToast('Product re-scraped and updated');
   };
 
   const handleDelete = async (productId) => {
@@ -71,21 +95,25 @@ export default function App() {
     if (selectedProduct?.product_id === productId) {
       setSelectedProduct(null);
     }
+    showToast('Product removed from tracking');
   };
 
   const handleUpdateFreq = async (productId, frequencyHours) => {
     await api.updateTracking(productId, { frequency_hours: frequencyHours });
     await loadDashboardData();
+    showToast(`Scrape frequency set to every ${frequencyHours} hours`);
   };
 
-  const handleTrackSuccess = async () => {
+  const handleTrackSuccess = async (productId) => {
     setIsSearchOpen(false);
+    showToast('Product tracked successfully!');
     await loadDashboardData();
   };
 
   const handleMarkAlertsRead = async () => {
     await api.markAlertsRead();
     await loadDashboardData();
+    showToast('All alerts marked as read');
   };
 
   const unreadAlertsCount = alerts.filter(a => !a.is_read).length;
@@ -134,7 +162,8 @@ export default function App() {
           onOpenAlerts={() => setIsAlertsOpen(true)}
           onOpenHealth={() => setIsHealthOpen(true)}
           unreadAlertsCount={unreadAlertsCount}
-          onRefresh={loadDashboardData}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
         />
 
         <div className="page-content">
@@ -174,17 +203,10 @@ export default function App() {
 
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={loadDashboardData}
-                title="Refresh"
-              >
-                <RefreshCw size={13} />
-              </button>
-
-              <button
-                type="button"
                 className="btn btn-primary btn-sm"
                 onClick={() => setIsSearchOpen(true)}
+                title="Track a new product"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
                 <Plus size={13} />
                 <span>Track New</span>
@@ -343,6 +365,31 @@ export default function App() {
         isOpen={isHealthOpen}
         onClose={() => setIsHealthOpen(false)}
       />
+
+      {/* Floating Status Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          background: 'var(--text-primary)',
+          color: '#fff',
+          padding: '10px 18px',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--shadow-modal)',
+          fontSize: '0.84rem',
+          fontWeight: 600,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          animation: 'fadeIn 0.2s ease',
+          border: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <Check size={16} style={{ color: 'var(--status-success)' }} />
+          <span>{toast}</span>
+        </div>
+      )}
     </div>
   );
 }

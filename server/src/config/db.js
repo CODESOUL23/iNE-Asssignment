@@ -26,12 +26,12 @@ const isSupabaseConfigured = Boolean(
 if (isSupabaseConfigured) {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('✅ Connected to Supabase PostgreSQL at:', SUPABASE_URL);
+    console.log('[DATABASE] Connected to Supabase PostgreSQL at:', SUPABASE_URL);
   } catch (err) {
-    console.warn('⚠️ Supabase initialization failed, falling back to local storage:', err.message);
+    console.warn('[DATABASE] Supabase initialization failed, falling back to local storage:', err.message);
   }
 } else {
-  console.log('ℹ️ Supabase credentials not provided. Using persistent local fallback storage.');
+  console.log('[DATABASE] Supabase credentials not provided. Using persistent local fallback storage.');
 }
 
 // -----------------------------------------------------------------------------
