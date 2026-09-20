@@ -71,44 +71,48 @@ export async function runHeadedScraper(productId, options = {}) {
       throw new Error('Price block bounding box could not be determined');
     }
 
-    logger(`[ACTION] Simulating human mouse movements over price area to satisfy dwell requirements...`);
-    // Move mouse through 10 intermediate points to satisfy minMoves: 8
-    const startX = box.x - 100;
-    const startY = box.y - 50;
-    const targetX = box.x + box.width / 2;
-    const targetY = box.y + box.height / 2;
+    // Hover directly on the price block to trigger mouseenter/mouseover
+    await priceBlock.hover();
+    await page.waitForTimeout(100);
 
-    for (let step = 0; step <= 10; step++) {
-      const t = step / 10;
-      const curX = startX + (targetX - startX) * t + Math.sin(t * Math.PI) * 20;
-      const curY = startY + (targetY - startY) * t + Math.cos(t * Math.PI) * 15;
+    logger(`[ACTION] Simulating human mouse movements over price area to satisfy dwell requirements...`);
+    // Move mouse across 14 points all strictly INSIDE the price block box
+    for (let step = 0; step < 14; step++) {
+      const curX = box.x + 25 + (step * (box.width - 50) / 14);
+      const curY = box.y + (box.height / 2) + Math.sin(step) * 8;
       await page.mouse.move(curX, curY);
-      await page.waitForTimeout(60);
+      await page.waitForTimeout(70);
     }
 
     // Dwell inside price block for at least 800ms (threshold is 600ms)
     logger(`[ACTION] Holding hover on price block for dwell verification (>600ms)...`);
-    await page.waitForTimeout(850);
+    await page.waitForTimeout(900);
 
     // Wait for "Reveal price" button to become enabled
-    const revealBtn = await page.waitForSelector('.price-block button:not([disabled])', { timeout: 5000 });
+    const revealBtn = await page.waitForSelector('.price-block button:not([disabled])', { timeout: 10000 });
     logger(`[ACTION] "Reveal price" button is enabled. Clicking...`);
     
     // Click with retry for synthetic click-drop (Xn has 35% chance to drop or delay)
     let clicked = false;
-    for (let clickAttempt = 1; clickAttempt <= 3; clickAttempt++) {
+    for (let clickAttempt = 1; clickAttempt <= 4; clickAttempt++) {
       await revealBtn.click();
       logger(`[ACTION] Clicked "Reveal price" (attempt ${clickAttempt})`);
 
       // Check if spinner or loading phase appeared
       try {
-        await page.waitForSelector('.spinner, .price-block[aria-busy="true"]', { timeout: 1200 });
+        await page.waitForFunction(() => {
+          const block = document.querySelector('.price-block');
+          if (!block) return false;
+          const hasSpinner = block.querySelector('.spinner, [aria-busy="true"]');
+          const btn = block.querySelector('button');
+          return hasSpinner || !btn || btn.disabled;
+        }, { timeout: 2000 });
         logger(`[STATUS] Spinner detected: Challenge execution in progress...`);
         clicked = true;
         break;
       } catch {
         logger(`[WARNING] Click may have been synthetically delayed by store logic. Retrying click...`);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(600);
       }
     }
 
