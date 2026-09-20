@@ -190,24 +190,15 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
         </div>
 
         {/* Live Status & Probe Trigger Toolbar */}
-        <div style={{
-          padding: '12px 24px',
-          background: '#f3ede3',
-          borderBottom: '1px solid var(--border-light)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div className="modal-live-toolbar">
+          <div className="modal-live-stats">
             <div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Active Price</div>
               <div className="mono" style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                 {product.current_price ? `₹${Number(product.current_price).toLocaleString()}` : 'Awaiting'}
               </div>
             </div>
-            <div style={{ height: '24px', width: '1px', background: 'var(--border-light)' }} />
+            <div className="modal-live-divider" />
             <div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Inventory Status</div>
               <div>
@@ -220,20 +211,11 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="modal-live-controls">
             <select
               value={scrapeEngine}
               onChange={(e) => setScrapeEngine(e.target.value)}
-              className="mono"
-              style={{
-                background: 'var(--bg-white)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                padding: '6px 10px',
-                fontSize: '0.78rem',
-                cursor: 'pointer'
-              }}
+              className="mono modal-engine-select"
             >
               <option value="lightweight">Engine: Lightweight PoW (150ms)</option>
               <option value="playwright-headed">Engine: Playwright Headed</option>
@@ -241,7 +223,7 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
 
             <button
               type="button"
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-sm modal-probe-btn"
               onClick={handleManualScrape}
               disabled={isScraping}
             >
@@ -252,12 +234,7 @@ export function ProductDetailModal({ product, isOpen, onClose, onRefreshProduct 
         </div>
 
         {/* Tab Navigation */}
-        <div style={{
-          display: 'flex',
-          borderBottom: '1px solid var(--border-light)',
-          padding: '0 24px',
-          background: 'var(--bg-white)'
-        }}>
+        <div className="modal-tab-nav">
           <button
             type="button"
             className="btn btn-ghost"

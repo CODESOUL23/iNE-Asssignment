@@ -8,9 +8,8 @@
 
 ## Live Demo & Links
 
-- **Hosted Web App (Vercel)**: `https://ine-price-tracker.vercel.app` *(Replace with your deployed URL)*
+- **Hosted Web App (Vercel)**: `https://ine-asssignment.vercel.app` *(Replace with your deployed URL)*
 - **GitHub Repository**: `https://github.com/CODESOUL23/iNE-Asssignment`
-- **Headed Run Screen Recording**: Included in repository root / YouTube / Loom link *(2–4 minutes demonstration)*
 
 ---
 
@@ -140,14 +139,3 @@ Because Render free instances sleep after 15 minutes of inactivity:
 - **Solver Verification**: `cd server && npm run test-solver`
 - **Frontend Build**: `cd client && npm run build`
 - **CI/CD**: Automatically runs on every git push via GitHub Actions.
-
----
-
-## Submission Checklist
-
-- [x] Live Hosted URL (Vercel Frontend + Render Backend)
-- [x] Public GitHub Repository
-- [x] 2–4 Minute Headed Run Screen Recording
-- [x] `docs/DESIGN_NOTES.md` explaining reliability, trade-offs, and AI corrections
-- [x] Setup instructions & Environment Variables (`README.md`)
-- [x] PDF Resume included in submission email to `sstephen@ine.com` cc `ssingh@ine.com`

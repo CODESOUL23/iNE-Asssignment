@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Bell, ShieldCheck, RefreshCw, Menu, Search } from 'lucide-react';
 
 export function Navbar({
   onOpenSearch,
@@ -7,28 +7,40 @@ export function Navbar({
   onOpenHealth,
   unreadAlertsCount = 0,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  onToggleSidebar
 }) {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-icon mobile-menu-toggle"
+            onClick={onToggleSidebar}
+            title="Open category menu"
+            aria-label="Open category navigation menu"
+          >
+            <Menu size={18} />
+          </button>
+        )}
         <span className="topbar-title">Dashboard</span>
         <div className="status-pill">
           <span className="status-dot-pulse" />
-          <span>Scraper Active</span>
+          <span className="status-pill-text">Scraper Active</span>
         </div>
       </div>
 
       <div className="topbar-actions">
         <button
           type="button"
-          className="btn btn-secondary"
+          className="btn btn-secondary topbar-search-btn"
           onClick={onOpenSearch}
-          style={{ gap: '6px', color: 'var(--text-secondary)', height: '36px', padding: '0 12px' }}
           title="Search or track product (⌘K)"
         >
-          <span style={{ fontSize: '0.82rem' }}>Search</span>
-          <kbd style={{
+          <Search size={15} className="topbar-search-icon" />
+          <span className="desktop-search-text" style={{ fontSize: '0.82rem' }}>Search</span>
+          <kbd className="desktop-search-kbd" style={{
             background: '#eee8dc',
             border: '1px solid var(--border-light)',
             borderRadius: '3px',
@@ -75,14 +87,15 @@ export function Navbar({
 
         <button
           type="button"
-          className="btn btn-secondary"
+          className="btn btn-secondary topbar-refresh-btn"
           onClick={onRefresh}
           disabled={isRefreshing}
           title="Refresh dashboard data"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 14px' }}
         >
           <RefreshCw size={14} className={isRefreshing ? 'spin' : ''} />
-          <span style={{ fontSize: '0.82rem' }}>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+          <span className="btn-label-responsive" style={{ fontSize: '0.82rem' }}>
+            {isRefreshing ? 'Syncing...' : 'Refresh'}
+          </span>
         </button>
       </div>
     </header>

@@ -20,6 +20,7 @@ export default function App() {
   const [filterQuery, setFilterQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [viewMode, setViewMode] = useState('grid');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Modals state
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -164,7 +165,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Left Sidebar */}
+      {/* Left Sidebar (Desktop fixed + Mobile slide-over drawer) */}
       <Sidebar
         categories={categories}
         categoryCounts={categoryCounts}
@@ -177,6 +178,8 @@ export default function App() {
         onOpenAlerts={() => setIsAlertsOpen(true)}
         onOpenHealth={() => setIsHealthOpen(true)}
         unreadAlertsCount={unreadAlertsCount}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
@@ -189,9 +192,31 @@ export default function App() {
           unreadAlertsCount={unreadAlertsCount}
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing}
+          onToggleSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
         />
 
         <div className="page-content">
+          {/* Quick-Scroll Category Pills (visible on mobile/tablet for instant category access) */}
+          <div className="category-scroll-container">
+            <button
+              type="button"
+              className={`category-chip ${selectedCategory === 'ALL' ? 'active' : ''}`}
+              onClick={() => setSelectedCategory('ALL')}
+            >
+              All Products ({trackedProducts.length})
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className={`category-chip ${selectedCategory === cat ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat)}
+              >
+                {cat} ({categoryCounts[cat]})
+              </button>
+            ))}
+          </div>
+
           {/* Sticky Note KPI Grid */}
           <StatsBar stats={stats} />
 
@@ -290,6 +315,9 @@ export default function App() {
               </div>
             ) : (
               <div className="b2b-table-container">
+                <div className="mobile-table-hint">
+                  Swipe horizontally to view full metrics →
+                </div>
                 <table className="b2b-table">
                   <thead>
                     <tr>
