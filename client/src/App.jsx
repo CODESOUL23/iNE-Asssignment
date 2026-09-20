@@ -395,15 +395,7 @@ export default function App() {
           )}
         </div>
 
-        {/* Footer */}
-        <footer className="app-footer">
-          <div>INE Software Engineer Intern Assignment · React & Node.js</div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <span>demo.inelabteamdev.com</span>
-            <span>·</span>
-            <span>Lightweight PoW Solver</span>
-          </div>
-        </footer>
+
       </div>
 
       {/* Modals */}
